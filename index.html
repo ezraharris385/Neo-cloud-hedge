@@ -1,0 +1,1082 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Backstop — NeoCloud lease risk desk</title></head><body>
+<style>
+:root{
+  color-scheme: light;
+  --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --hairline:rgba(11,11,11,.10);
+  --accent:#2a78d6; --accent-deep:#1c5cab; --accent-wash:rgba(42,120,214,.08);
+  --s1:#2a78d6; --s2:#eb6834;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --good-text:#006300;
+  --l1:#0d366b; --l2:#184f95; --l3:#256abf; --l4:#3987e5; --l5:#6da7ec; --l6:#86b6ef;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Consolas,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --hairline:rgba(255,255,255,.10);
+    --accent:#3987e5; --accent-deep:#6da7ec; --accent-wash:rgba(57,135,229,.12);
+    --s1:#3987e5; --s2:#d95926;
+    --good-text:#0ca30c;
+    --l1:#184f95; --l2:#256abf; --l3:#2a78d6; --l4:#3987e5; --l5:#6da7ec; --l6:#9ec5f4;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --hairline:rgba(255,255,255,.10);
+  --accent:#3987e5; --accent-deep:#6da7ec; --accent-wash:rgba(57,135,229,.12);
+  --s1:#3987e5; --s2:#d95926;
+  --good-text:#0ca30c;
+  --l1:#184f95; --l2:#256abf; --l3:#2a78d6; --l4:#3987e5; --l5:#6da7ec; --l6:#9ec5f4;
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --hairline:rgba(11,11,11,.10);
+  --accent:#2a78d6; --accent-deep:#1c5cab; --accent-wash:rgba(42,120,214,.08);
+  --s1:#2a78d6; --s2:#eb6834;
+  --good-text:#006300;
+  --l1:#0d366b; --l2:#184f95; --l3:#256abf; --l4:#3987e5; --l5:#6da7ec; --l6:#86b6ef;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--page);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+.app{max-width:1240px;margin:0 auto;padding:28px 24px 60px}
+a{color:var(--accent-deep)}
+h1,h2,h3{margin:0;text-wrap:balance}
+button{font:inherit;color:inherit;cursor:pointer}
+
+/* ---------- header ---------- */
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-bottom:18px;border-bottom:1px solid var(--hairline);margin-bottom:18px}
+.eyebrow{font:600 11px/1 var(--mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+h1.wordmark{font-size:34px;font-weight:700;letter-spacing:-.02em}
+.tag{margin:8px 0 0;max-width:62ch;color:var(--ink2);font-size:14.5px}
+.tbtn{background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:7px 12px;font:500 12.5px var(--mono);color:var(--ink2);white-space:nowrap}
+.tbtn:hover{border-color:var(--axis)}
+
+/* ---------- preset chips ---------- */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.chip{background:var(--surface);border:1px solid var(--hairline);border-radius:999px;padding:6px 14px;font:500 12.5px var(--mono);color:var(--ink2)}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent-deep);background:var(--accent-wash)}
+.chips .chiplbl{align-self:center;font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+
+/* ---------- layout ---------- */
+main.grid{display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
+.rail{display:flex;flex-direction:column;gap:14px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;padding-right:2px}
+.content{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:16px 18px}
+.card h2{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:var(--mono);margin-bottom:12px}
+
+/* ---------- controls ---------- */
+.ctl{display:block;margin:10px 0}
+.ctl .cl{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;color:var(--ink2);margin-bottom:4px}
+.ctl output{font:600 12.5px var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent);margin:0;height:22px}
+select{width:100%;background:var(--surface);color:var(--ink);border:1px solid var(--axis);border-radius:7px;padding:6px 8px;font:500 13px var(--sans)}
+input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+.inst{border-top:1px solid var(--hairline);padding:10px 0 4px;margin-top:6px}
+.inst:first-of-type{border-top:none;margin-top:0;padding-top:2px}
+.ihead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ihead .sw{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;cursor:pointer}
+.icost{font:500 11.5px var(--mono);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.inst .ctl{margin:6px 0 4px}
+.inst.off .ctl{opacity:.38;pointer-events:none}
+.inote{font-size:12px;color:var(--muted);margin:2px 0 4px}
+.solve{width:100%;margin-top:14px;background:var(--accent);border:none;border-radius:9px;color:#fff;font-weight:600;font-size:14px;padding:10px 12px}
+.solve:hover{filter:brightness(1.08)}
+.solve:disabled{opacity:.6}
+.solvenote{font-size:12px;color:var(--muted);margin-top:8px;text-align:center}
+
+/* ---------- verdict ---------- */
+.verdict{display:grid;grid-template-columns:auto 1fr;gap:8px 28px;align-items:center}
+.vword{font-size:40px;font-weight:700;letter-spacing:-.02em;line-height:1.05;white-space:nowrap}
+.vword .dot{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:10px;vertical-align:baseline}
+.vsub{grid-column:1;font-size:13px;color:var(--ink2)}
+.vmeterwrap{grid-column:2;grid-row:1 / span 2;align-self:center;min-width:230px}
+.vmeterlbl{display:flex;justify-content:space-between;font:500 11.5px var(--mono);color:var(--muted);margin-bottom:5px}
+.vmeter{position:relative;height:12px;border-radius:6px;background:var(--grid);overflow:visible;margin-bottom:22px}
+.vmeter .fill{position:absolute;inset:0 auto 0 0;border-radius:6px;min-width:6px}
+.vmeter .tolmark{position:absolute;top:-4px;bottom:-4px;left:50%;width:2px;background:var(--ink);opacity:.7}
+.vmeter .tollbl{position:absolute;top:16px;left:50%;transform:translateX(-50%);font:600 10.5px var(--mono);color:var(--ink2);letter-spacing:.06em}
+.vtol{grid-column:1 / -1;border-top:1px solid var(--hairline);padding-top:10px;margin-top:4px}
+.vtol .ctl{margin:0}
+
+/* ---------- stat tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:14px 16px}
+.tile .tl{font-size:12.5px;color:var(--ink2)}
+.tile .tv{font-size:26px;font-weight:650;letter-spacing:-.01em;margin:2px 0 1px}
+.tile .td{font-size:12px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.td.down{color:var(--good-text)}
+.td.up{color:var(--crit)}
+.td.flat{color:var(--muted)}
+
+/* ---------- chart cards ---------- */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+figure.card{margin:0;display:flex;flex-direction:column;gap:8px}
+figcaption .chead{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.ctitle{font-size:15px;font-weight:650}
+.csub{font-size:12.5px;color:var(--muted);margin-top:2px;max-width:70ch}
+.tblbtn{background:none;border:1px solid var(--hairline);border-radius:6px;font:500 11px var(--mono);color:var(--muted);padding:3px 9px;white-space:nowrap}
+.tblbtn:hover{border-color:var(--axis);color:var(--ink2)}
+.tblbtn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent-deep)}
+.legend{display:flex;flex-wrap:wrap;gap:5px 16px;font-size:12px;color:var(--ink2)}
+.legend .li{display:inline-flex;align-items:center;gap:6px}
+.legend .swb{width:10px;height:10px;border-radius:3px;flex:none}
+.legend .swl{width:14px;height:2.5px;border-radius:2px;flex:none}
+.cbody svg{display:block;width:100%;height:auto}
+.cbody text{font-family:var(--mono)}
+.hidden{display:none !important}
+.ctable{overflow-x:auto}
+.ctable table{border-collapse:collapse;width:100%;font-size:12.5px}
+.ctable th{text-align:right;font:600 11px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:6px 10px;border-bottom:1px solid var(--grid)}
+.ctable th:first-child,.ctable td:first-child{text-align:left}
+.ctable td{text-align:right;padding:5px 10px;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums;font-family:var(--mono);color:var(--ink2)}
+.ctable td:first-child{font-family:var(--sans);color:var(--ink)}
+.yearchips{display:flex;gap:6px;flex-wrap:wrap}
+.ychip{background:none;border:1px solid var(--hairline);border-radius:6px;font:500 11.5px var(--mono);color:var(--ink2);padding:3px 9px}
+.ychip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent-deep);background:var(--accent-wash)}
+
+/* ---------- tooltip ---------- */
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--surface);border:1px solid var(--axis);border-radius:9px;box-shadow:0 4px 18px rgba(0,0,0,.14);padding:9px 12px;font-size:12px;display:none;max-width:280px}
+#tip .tt{font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+#tip .tr{display:flex;align-items:center;gap:7px;margin:2.5px 0;justify-content:space-between}
+#tip .trl{display:flex;align-items:center;gap:7px;color:var(--ink2)}
+#tip .key{width:12px;height:2.5px;border-radius:2px;flex:none}
+#tip .keyb{width:9px;height:9px;border-radius:2.5px;flex:none}
+#tip .tv{font:600 12px var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* ---------- term sheet ---------- */
+.term pre{margin:0;font:12.5px/1.6 var(--mono);color:var(--ink2);white-space:pre;overflow-x:auto}
+.term .chead{margin-bottom:10px}
+.copybtn{background:none;border:1px solid var(--hairline);border-radius:6px;font:500 11px var(--mono);color:var(--muted);padding:3px 9px}
+.copybtn:hover{border-color:var(--axis);color:var(--ink2)}
+
+/* ---------- methodology ---------- */
+details.meth summary{cursor:pointer;font-size:13.5px;font-weight:600;color:var(--ink2)}
+details.meth[open] summary{margin-bottom:8px}
+.meth .mbody{font-size:13px;color:var(--ink2)}
+.meth .mbody p{margin:6px 0}
+.meth .mbody code{font-family:var(--mono);font-size:12px;background:var(--accent-wash);border-radius:4px;padding:1px 5px}
+
+footer.foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--hairline);font-size:12px;color:var(--muted);max-width:90ch}
+
+@media (max-width:1000px){
+  main.grid{grid-template-columns:1fr}
+  .rail{position:static;max-height:none}
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .two{grid-template-columns:1fr}
+  .verdict{grid-template-columns:1fr}
+  .vmeterwrap{grid-column:1;grid-row:auto;margin-top:8px}
+}
+@media (prefers-reduced-motion: no-preference){
+  .vmeter .fill{transition:width .25s ease, background-color .25s ease}
+}
+</style>
+
+<div class="app">
+<header class="top">
+  <div>
+    <div class="eyebrow">NeoCloud lease risk &middot; structuring desk</div>
+    <h1 class="wordmark">Backstop</h1>
+    <p class="tag">Underwrite an AI-cloud tenant, price the landlord&rsquo;s true exposure across market regimes, and assemble the credit-support stack that turns a &ldquo;too risky to sign&rdquo; 5&ndash;7 year lease into a signable deal.</p>
+  </div>
+  <button class="tbtn" id="themebtn" aria-label="Toggle color theme">theme: auto</button>
+</header>
+
+<div class="chips" id="presets">
+  <span class="chiplbl">Load a tenant</span>
+  <button class="chip" data-preset="seriesb" aria-pressed="true">Series B NeoCloud</button>
+  <button class="chip" data-preset="anchor" aria-pressed="false">Anchor-backed Series C</button>
+  <button class="chip" data-preset="thin" aria-pressed="false">Thin-backlog Series A</button>
+</div>
+
+<main class="grid">
+<aside class="rail">
+
+  <section class="card">
+    <h2>Tenant credit</h2>
+    <label class="ctl"><span class="cl">Funding stage</span>
+      <select id="stage">
+        <option value="seed">Seed</option><option value="A">Series A</option>
+        <option value="B" selected>Series B</option><option value="C">Series C</option>
+        <option value="D">Series D+</option><option value="growth">Growth / pre-IPO</option>
+      </select></label>
+    <label class="ctl"><span class="cl">Cash runway <output id="runway_v"></output></span>
+      <input type="range" id="runway" min="3" max="36" step="1" value="14"></label>
+    <label class="ctl"><span class="cl">Contracted backlog <output id="backlog_v"></output></span>
+      <input type="range" id="backlog" min="0" max="600" step="10" value="220"></label>
+    <label class="ctl"><span class="cl">Backlog counterparties</span>
+      <select id="grade">
+        <option value="hyperscaler">Hyperscaler / investment grade</option>
+        <option value="enterprise" selected>Enterprise mix</option>
+        <option value="startup">AI startups</option>
+      </select></label>
+    <label class="ctl"><span class="cl">Top-customer concentration <output id="conc_v"></output></span>
+      <input type="range" id="conc" min="10" max="100" step="5" value="55"></label>
+  </section>
+
+  <section class="card">
+    <h2>Lease &amp; market</h2>
+    <label class="ctl"><span class="cl">Annual rent <output id="rent_v"></output></span>
+      <input type="range" id="rent" min="4" max="60" step="1" value="18"></label>
+    <label class="ctl"><span class="cl">Lease term <output id="term_v"></output></span>
+      <input type="range" id="term" min="3" max="10" step="1" value="7"></label>
+    <label class="ctl"><span class="cl">Landlord fit-out capex <output id="capex_v"></output></span>
+      <input type="range" id="capex" min="20" max="400" step="5" value="110"></label>
+    <label class="ctl"><span class="cl">AI demand outlook</span>
+      <select id="outlook">
+        <option value="-1">Correction-biased</option>
+        <option value="0" selected>Balanced</option>
+        <option value="1">Boom-biased</option>
+      </select></label>
+  </section>
+
+  <section class="card">
+    <h2>Credit-support stack</h2>
+
+    <div class="inst" data-k="dep">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="dep_on" checked><span>Security deposit</span></label><span class="icost" id="dep_cost"></span></div>
+      <label class="ctl sub"><span class="cl">Size <output id="dep_m_v"></output></span>
+        <input type="range" id="dep_m" min="0" max="12" step="1" value="6"></label>
+    </div>
+
+    <div class="inst" data-k="lc">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="lc_on" checked><span>Letter of credit</span></label><span class="icost" id="lc_cost"></span></div>
+      <label class="ctl sub"><span class="cl">Initial face <output id="lc_m_v"></output></span>
+        <input type="range" id="lc_m" min="0" max="12" step="1" value="8"></label>
+      <p class="inote">Burns down ratably over the term.</p>
+    </div>
+
+    <div class="inst" data-k="gpu">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="gpu_on" checked><span>GPU fleet lien</span></label><span class="icost" id="gpu_cost"></span></div>
+      <label class="ctl sub"><span class="cl">Fleet book value <output id="gpu_v_v"></output></span>
+        <input type="range" id="gpu_v" min="0" max="500" step="10" value="180"></label>
+      <label class="ctl sub"><span class="cl">Lien priority</span>
+        <select id="gpu_p"><option value="first">First lien</option><option value="second" selected>Second lien (behind equipment lenders)</option></select></label>
+      <p class="inote">30%/yr depreciation, 45% fire-sale haircut applied.</p>
+    </div>
+
+    <div class="inst" data-k="rev">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="rev_on"><span>Revenue assignment</span></label><span class="icost" id="rev_cost"></span></div>
+      <label class="ctl sub"><span class="cl">Backlog assigned on default <output id="rev_s_v"></output></span>
+        <input type="range" id="rev_s" min="0" max="100" step="5" value="50"></label>
+      <p class="inote">Recovery discounted by counterparty quality and collection drag.</p>
+    </div>
+
+    <div class="inst" data-k="gty">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="gty_on"><span>Sponsor guarantee</span></label><span class="icost" id="gty_cost"></span></div>
+      <label class="ctl sub"><span class="cl">Guaranteed rent <output id="gty_m_v"></output></span>
+        <input type="range" id="gty_m" min="0" max="12" step="1" value="6"></label>
+      <p class="inote">Modeled at a 90% probability the sponsor honors it.</p>
+    </div>
+
+    <div class="inst" data-k="ins">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="ins_on"><span>Lease-default insurance</span></label><span class="icost" id="ins_cost"></span></div>
+      <label class="ctl sub"><span class="cl">Policy limit <output id="ins_c_v"></output></span>
+        <input type="range" id="ins_c" min="0" max="40" step="1" value="15"></label>
+      <p class="inote">Sits excess of collateral. Premium is priced off this model: expected layer loss &times; 1.75 load.</p>
+    </div>
+
+    <button class="solve" id="autobtn">Solve minimum-cost stack</button>
+    <p class="solvenote" id="solvenote">Greedy search for the cheapest stack whose tail loss clears the landlord&rsquo;s tolerance.</p>
+  </section>
+
+</aside>
+
+<section class="content">
+
+  <div class="card verdict" id="verdictcard">
+    <div class="vword" id="vword"><span class="dot"></span>&hellip;</div>
+    <div class="vsub" id="vsub"></div>
+    <div class="vmeterwrap">
+      <div class="vmeterlbl"><span>0</span><span id="vmetermax"></span></div>
+      <div class="vmeter"><div class="fill" id="vfill"></div><div class="tolmark"></div><div class="tollbl">tolerance</div></div>
+    </div>
+    <div class="vtol">
+      <label class="ctl"><span class="cl">Landlord risk tolerance &mdash; max acceptable CVaR&#8329;&#8325; <output id="tol_v"></output></span>
+        <input type="range" id="tol" min="3" max="36" step="1" value="12"></label>
+    </div>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><div class="tl">P(default within term)</div><div class="tv" id="t_pd"></div><div class="td flat">cumulative, regime-weighted</div></div>
+    <div class="tile"><div class="tl">Expected credit loss</div><div class="tv" id="t_el"></div><div class="td" id="t_el_d"></div></div>
+    <div class="tile"><div class="tl">Tail loss &middot; CVaR&#8329;&#8325;</div><div class="tv" id="t_cv"></div><div class="td" id="t_cv_d"></div></div>
+    <div class="tile"><div class="tl">Stack cost</div><div class="tv" id="t_cost"></div><div class="td flat" id="t_cost_d"></div></div>
+  </div>
+
+  <figure class="card" id="cardA">
+    <figcaption>
+      <div class="chead"><div><div class="ctitle">Exposure vs. credit support, by year of default</div>
+      <div class="csub">Stacked bands: what each instrument recovers if the tenant defaults that year (seniority order, base regime). Lines: modeled loss-given-default. Red wash: the stress gap the landlord eats.</div></div>
+      <button class="tblbtn" data-for="A" aria-pressed="false">table</button></div>
+      <div class="legend" id="legA"></div>
+    </figcaption>
+    <div class="cbody" id="chartA"></div>
+    <div class="ctable hidden" id="tableA"></div>
+  </figure>
+
+  <div class="two">
+    <figure class="card" id="cardB">
+      <figcaption><div class="chead"><div><div class="ctitle">Default hazard over the term</div>
+        <div class="csub">Annual hazard from stage, runway, backlog and concentration; cumulative curve is regime-weighted.</div></div>
+        <button class="tblbtn" data-for="B" aria-pressed="false">table</button></div>
+        <div class="legend" id="legB"></div></figcaption>
+      <div class="cbody" id="chartB"></div>
+      <div class="ctable hidden" id="tableB"></div>
+    </figure>
+
+    <figure class="card" id="cardC">
+      <figcaption><div class="chead"><div><div class="ctitle">Loss distribution, given a default</div>
+        <div class="csub">6,000 Monte Carlo paths, conditional on default. Negative = re-let uplift in boom paths.</div></div>
+        <button class="tblbtn" data-for="C" aria-pressed="false">table</button></div>
+        <div class="legend" id="legC"></div></figcaption>
+      <div class="cbody" id="chartC"></div>
+      <div class="ctable hidden" id="tableC"></div>
+    </figure>
+
+    <figure class="card" id="cardD">
+      <figcaption><div class="chead"><div><div class="ctitle">Stress waterfall &mdash; who absorbs the loss</div>
+        <div class="csub">Correction-regime default; each layer absorbs in seniority order.</div></div>
+        <button class="tblbtn" data-for="D" aria-pressed="false">table</button></div>
+        <div class="yearchips" id="wfyears"></div></figcaption>
+      <div class="cbody" id="chartD"></div>
+      <div class="ctable hidden" id="tableD"></div>
+    </figure>
+
+    <figure class="card" id="cardE">
+      <figcaption><div class="chead"><div><div class="ctitle">Cost vs. protection frontier</div>
+        <div class="csub">Standard packages priced on the same 6,000 paths. Down and left is better.</div></div>
+        <button class="tblbtn" data-for="E" aria-pressed="false">table</button></div></figcaption>
+      <div class="cbody" id="chartE"></div>
+      <div class="ctable hidden" id="tableE"></div>
+    </figure>
+  </div>
+
+  <section class="card term">
+    <div class="chead"><h2 style="margin:0">Draft term sheet</h2><button class="copybtn" id="copybtn">copy</button></div>
+    <pre id="ts"></pre>
+  </section>
+
+  <details class="card meth">
+    <summary>Model assumptions &amp; method</summary>
+    <div class="mbody">
+      <p><strong>Hazard.</strong> Base annual default hazard by stage (Seed 24% &rarr; growth 6%), scaled by runway (&lt;9&nbsp;mo &times;1.6 &hellip; &gt;24&nbsp;mo &times;0.85), contracted-backlog coverage weighted by counterparty grade, and top-customer concentration (&gt;50% &times;1.15, &gt;70% &times;1.3). A seasoning shape peaks in year&nbsp;2 and decays &mdash; survivors mature.</p>
+      <p><strong>Regimes.</strong> Each path draws a persistent AI-market regime: boom / base / correction. Hazard multiplier <code>0.55 / 1.0 / 1.9</code>, re-let downtime <code>4 / 9 / 14 mo</code>, re-let rent spread <code>+15% / 0 / &minus;22%</code>, GPU resale <code>&times;1.15 / &times;1.0 / &times;0.6</code>. The outlook selector tilts regime probabilities.</p>
+      <p><strong>Loss given default.</strong> Rent arrears (2&ndash;5&nbsp;mo) + vacancy downtime + PV of the re-let rent spread over the remaining term (8% discount) + re-leasing costs (commissions plus a 3%-of-capex fit-out refresh). Losses are capped at remaining lease value; boom paths can produce re-let <em>gains</em> &mdash; scarce powered shell is genuinely valuable.</p>
+      <p><strong>Support stack.</strong> Applied in seniority order: deposit &rarr; LC (ratable burn-down) &rarr; GPU lien (30%/yr depreciation, 45% fire-sale haircut, second lien recovers 25%) &rarr; revenue assignment (counterparty survival &times; 35% collection realization) &rarr; sponsor guarantee (90% honor rate) &rarr; insurance (excess of all collateral, premium = modeled layer loss &times; 1.75).</p>
+      <p><strong>Metrics.</strong> Expected loss and CVaR&#8329;&#8325; (mean of the worst 5% of paths) on 6,000 seeded paths; identical draws across configurations, so comparisons are noise-free. The solver greedily adds the increment with the best tail-risk reduction per dollar of annual cost until CVaR&#8329;&#8325; clears tolerance.</p>
+    </div>
+  </details>
+
+  <footer class="foot">Backstop is a negotiation-support model: every number above is driven by the stated assumptions, not market quotes. It is not investment, insurance, or legal advice &mdash; use it to frame the conversation between landlord, tenant, brokers and insurers.</footer>
+</section>
+</main>
+</div>
+<div id="tip" role="status"></div>
+
+<script>
+'use strict';
+/* ================= utilities ================= */
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const fM=v=>(v<0?'−':'')+'$'+Math.abs(v).toFixed(1)+'M';
+const fM2=v=>(v<0?'−':'')+'$'+Math.abs(v).toFixed(2)+'M';
+const fP=v=>(v*100).toFixed(1)+'%';
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+function niceStep(raw){const p=Math.pow(10,Math.floor(Math.log10(raw)));const n=raw/p;return (n<=1?1:n<=2?2:n<=5?5:10)*p;}
+function ticks(max,n=4){const st=niceStep(max/n);const out=[];for(let v=0;v<=max+1e-9;v+=st)out.push(v);return out;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+const annuity=(y,r=0.08)=>y<=0?0:(1-Math.pow(1+r,-y))/r;
+
+/* ================= model ================= */
+const REG={
+  boom:{h:0.55, dt:4,  s: 0.15, gpu:1.15, rc:0.20},
+  base:{h:1.00, dt:9,  s: 0.00, gpu:1.00, rc:0.30},
+  corr:{h:1.90, dt:14, s:-0.22, gpu:0.60, rc:0.45}
+};
+const REGN={boom:'Boom',base:'Base',corr:'Correction'};
+const STAGEN={seed:'Seed',A:'Series A',B:'Series B',C:'Series C',D:'Series D+',growth:'Growth-stage'};
+const GRADEN={hyperscaler:'hyperscaler-grade',enterprise:'enterprise-grade',startup:'startup-grade'};
+function regProbs(o){return o>0?{boom:.40,base:.45,corr:.15}:o<0?{boom:.12,base:.43,corr:.45}:{boom:.25,base:.50,corr:.25};}
+
+const state={
+  stage:'B', runway:14, backlog:220, grade:'enterprise', conc:55,
+  rent:18, term:7, capex:110, outlook:0,
+  dep:{on:true,m:6}, lc:{on:true,m:8}, gpu:{on:true,v:180,p:'second'},
+  rev:{on:false,s:50}, gty:{on:false,m:6}, ins:{on:false,c:15},
+  tol:12, wfYear:2
+};
+
+const PRESETS={
+  seriesb:{stage:'B',runway:14,backlog:220,grade:'enterprise',conc:55,rent:18,term:7,capex:110,outlook:0,
+    dep:{on:true,m:6},lc:{on:true,m:8},gpu:{on:true,v:180,p:'second'},rev:{on:false,s:50},gty:{on:false,m:6},ins:{on:false,c:15},tol:12},
+  anchor:{stage:'C',runway:22,backlog:480,grade:'hyperscaler',conc:80,rent:24,term:7,capex:150,outlook:0,
+    dep:{on:true,m:4},lc:{on:true,m:6},gpu:{on:false,v:250,p:'second'},rev:{on:true,s:60},gty:{on:false,m:6},ins:{on:false,c:12},tol:12},
+  thin:{stage:'A',runway:9,backlog:60,grade:'startup',conc:45,rent:9,term:5,capex:60,outlook:0,
+    dep:{on:true,m:8},lc:{on:true,m:10},gpu:{on:true,v:90,p:'second'},rev:{on:false,s:50},gty:{on:true,m:8},ins:{on:true,c:25},tol:12}
+};
+
+function hazards(st){
+  const base={seed:.24,A:.19,B:.15,C:.11,D:.08,growth:.06}[st.stage];
+  const run=st.runway<9?1.6:st.runway<15?1.3:st.runway<24?1.05:0.85;
+  const gq={hyperscaler:1,enterprise:.7,startup:.4}[st.grade];
+  const cov=st.backlog/Math.max(1,st.rent*st.term);
+  const covM=clamp(1.35-0.5*Math.min(cov,1.5)*gq,0.55,1.35);
+  const concM=st.conc>70?1.3:st.conc>50?1.15:1;
+  const shape=[1,1.1,.95,.8,.68,.58,.5,.45,.42,.4];
+  const h=[];for(let t=0;t<st.term;t++)h.push(clamp(base*run*covM*concM*(shape[t]??.4),.005,.45));
+  return h;
+}
+
+function grossLoss(st,x,r,j){ /* x = default time (yrs), j = jitters in [0,1] */
+  const R=REG[r], m=st.rent/12, rem=st.term-x;
+  const arr=(2+3*j.arr)*m;
+  const dtM=Math.min(R.dt*(0.6+0.8*j.dt), rem*12);
+  const lost=dtM*m;
+  const reletY=Math.max(0, rem-dtM/12);
+  const sp=R.s+(j.sp-0.5)*0.12;
+  const spreadPV=-sp*st.rent*annuity(reletY);
+  const rc=reletY>0.1 ? R.rc*st.rent+0.03*st.capex : 0;
+  let g=arr+lost+spreadPV+rc;
+  g=Math.min(g, arr+st.rent*rem);
+  g=Math.max(g, -st.rent);
+  return g;
+}
+
+const LAYERS=[
+  {k:'dep',n:'Security deposit',v:'--l1'},
+  {k:'lc', n:'Letter of credit', v:'--l2'},
+  {k:'gpu',n:'GPU fleet lien',   v:'--l3'},
+  {k:'rev',n:'Revenue assignment',v:'--l4'},
+  {k:'gty',n:'Sponsor guarantee', v:'--l5'},
+  {k:'ins',n:'Default insurance', v:'--l6'}
+];
+function layerCaps(st,x,r){
+  const m=st.rent/12, R=REG[r];
+  const surv={hyperscaler:.85,enterprise:.55,startup:.25}[st.grade];
+  const cy=Math.min(4,st.term);
+  return {
+    dep: st.dep.on? st.dep.m*m : 0,
+    lc:  st.lc.on?  st.lc.m*m*Math.max(0,1-x/st.term) : 0,
+    gpu: st.gpu.on? st.gpu.v*Math.pow(0.70,x)*0.45*(st.gpu.p==='first'?1:0.25)*R.gpu : 0,
+    rev: st.rev.on? st.backlog*Math.max(0,1-x/cy)*(st.rev.s/100)*surv*0.35 : 0,
+    gty: st.gty.on? st.gty.m*m*0.9 : 0,
+    ins: st.ins.on? (st.ins.c/100)*st.rent*st.term : 0
+  };
+}
+
+/* ---- scenario set (depends on tenant/lease/market only) ---- */
+let SC=null;
+const NPATH=6000;
+function buildScenarios(st){
+  const rng=mulberry32(20260731);
+  const h=hazards(st), pr=regProbs(st.outlook);
+  const rows=[];
+  for(let i=0;i<NPATH;i++){
+    const u=rng();
+    const r=u<pr.boom?'boom':(u<pr.boom+pr.base?'base':'corr');
+    const mult=REG[r].h; let def=0;
+    for(let t=1;t<=st.term;t++){ if(rng()<clamp(h[t-1]*mult,0,0.6)){def=t;break;} }
+    if(def){
+      const j={dt:rng(),sp:rng(),arr:rng(),gty:rng()};
+      rows.push({r,def,j,g:grossLoss(st,def-0.5,r,j)});
+    } else rows.push({r,def:0,j:null,g:0});
+  }
+  SC={rows,h,pr};
+}
+
+/* ---- evaluate a hedge configuration on the shared scenario set ---- */
+function evalHedges(st){
+  const rows=SC.rows;
+  const ul=new Array(rows.length), hl=new Array(rows.length);
+  let insPay=0, defs=0;
+  for(let i=0;i<rows.length;i++){
+    const row=rows[i];
+    if(!row.def){ul[i]=0;hl[i]=0;continue;}
+    defs++;
+    const g=row.g; ul[i]=g;
+    if(g<=0){hl[i]=g;continue;}
+    let rem=g;
+    const caps=layerCaps(st,row.def-0.5,row.r);
+    for(const L of LAYERS){
+      let c=caps[L.k];
+      if(L.k==='gty') c=(st.gty.on&&row.j.gty<0.9)? st.gty.m*(st.rent/12) : 0;
+      const used=Math.min(rem,c); rem-=used;
+      if(L.k==='ins') insPay+=used;
+    }
+    hl[i]=rem;
+  }
+  const stats=a=>{
+    const s=[...a].sort((x,y)=>x-y); const n=s.length;
+    const mean=s.reduce((p,c)=>p+c,0)/n;
+    const k=Math.floor(n*0.95); const tail=s.slice(k);
+    const cvar=tail.reduce((p,c)=>p+c,0)/tail.length;
+    return {mean,cvar,ploss:a.filter(v=>v>0.25).length/n};
+  };
+  const su=stats(ul), sh=stats(hl);
+  const m=st.rent/12;
+  const insPrem=st.ins.on? 1.75*(insPay/rows.length)/st.term : 0;
+  const costs=[
+    st.dep.on&&st.dep.m>0?{n:'Deposit funding drag (tenant)',v:0.11*st.dep.m*m}:null,
+    st.lc.on&&st.lc.m>0?{n:'LC fee ~2.25% of face (tenant)',v:0.0225*st.lc.m*m}:null,
+    st.gpu.on?{n:'Lien filing & fleet monitoring',v:0.10}:null,
+    st.rev.on?{n:'Assignment administration',v:0.05}:null,
+    st.gty.on&&st.gty.m>0?{n:'Guarantee fee ~1.5% (sponsor)',v:0.015*st.gty.m*m}:null,
+    st.ins.on&&st.ins.c>0?{n:'Insurance premium (model-priced)',v:insPrem}:null
+  ].filter(Boolean);
+  const cost=costs.reduce((p,c)=>p+c.v,0);
+  return {su,sh,ul,hl,pdef:defs/rows.length,cost,costs,insPrem};
+}
+
+/* ================= charts ================= */
+const CH={}; // chart data cache for tooltips/tables
+const tip=$('#tip');
+function showTip(html,x,y){
+  tip.innerHTML=html; tip.style.display='block';
+  const r=tip.getBoundingClientRect();
+  let L=x+14,T=y+14;
+  if(L+r.width>innerWidth-8)L=x-r.width-14;
+  if(T+r.height>innerHeight-8)T=y-r.height-14;
+  tip.style.left=L+'px';tip.style.top=T+'px';
+}
+function hideTip(){tip.style.display='none';}
+function tipRow(color,label,val,bar){
+  return `<div class="tr"><span class="trl"><span class="${bar?'keyb':'key'}" style="background:${color}"></span>${esc(label)}</span><span class="tv">${esc(val)}</span></div>`;
+}
+function legend(el,items){
+  el.innerHTML=items.map(i=>`<span class="li"><span class="${i.line?'swl':'swb'}" style="background:${i.c}"></span>${esc(i.n)}</span>`).join('');
+}
+function table(el,heads,rows){
+  el.innerHTML=`<table><thead><tr>${heads.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${
+    rows.map(r=>`<tr>${r.map((c,i)=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+
+/* ---- A: exposure vs support ---- */
+function renderA(st){
+  const T=st.term;
+  const yrs=[];const pr=SC.pr;
+  const jm={dt:.5,sp:.5,arr:.5};
+  for(let t=1;t<=T;t++){
+    const x=t-0.5;
+    const caps=layerCaps(st,x,'base');
+    const exp_=pr.boom*grossLoss(st,x,'boom',jm)+pr.base*grossLoss(st,x,'base',jm)+pr.corr*grossLoss(st,x,'corr',jm);
+    const stress=grossLoss(st,x,'corr',jm);
+    yrs.push({t,caps,exp:Math.max(0,exp_),stress:Math.max(0,stress)});
+  }
+  const stackTop=y=>LAYERS.reduce((p,L)=>p+y.caps[L.k],0);
+  const maxY=Math.max(...yrs.map(y=>Math.max(y.stress,stackTop(y))))*1.15||1;
+  const W=880,H=330,pl=56,prt=104,pt=16,pb=36,pw=W-pl-prt,ph=H-pt-pb;
+  const X=t=>pl+(T===1?pw/2:(t-1)/(T-1)*pw);
+  const Y=v=>pt+ph-(v/maxY)*ph;
+  let s='';
+  ticks(maxY).forEach(v=>{s+=`<line x1="${pl}" x2="${pl+pw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)" stroke-width="1"/><text x="${pl-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v>=1?'$'+Math.round(v)+'M':v===0?'0':'$'+v+'M'}</text>`;});
+  // stacked bands (seniority: dep at bottom)
+  let cum=yrs.map(()=>0);
+  LAYERS.forEach(L=>{
+    const lo=cum.slice();
+    cum=cum.map((c,i)=>c+yrs[i].caps[L.k]);
+    if(cum.every((c,i)=>c-lo[i]<1e-6))return;
+    const up=yrs.map((y,i)=>`${X(y.t)},${Y(cum[i])}`).join(' ');
+    const dn=yrs.slice().reverse().map((y,i)=>`${X(y.t)},${Y(lo[yrs.length-1-i])}`).join(' ');
+    s+=`<polygon points="${up} ${dn}" fill="var(${L.v})" stroke="var(--surface)" stroke-width="2"/>`;
+  });
+  // stress gap wash
+  const upG=yrs.map((y,i)=>`${X(y.t)},${Y(Math.max(y.stress,cum[i]))}`).join(' ');
+  const dnG=yrs.slice().reverse().map((y,i)=>`${X(y.t)},${Y(cum[yrs.length-1-i])}`).join(' ');
+  s+=`<polygon points="${upG} ${dnG}" fill="var(--crit)" opacity="0.12"/>`;
+  // lines
+  const lineOf=k=>yrs.map(y=>`${X(y.t)},${Y(y[k])}`).join(' ');
+  s+=`<polyline points="${lineOf('exp')}" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s+=`<polyline points="${lineOf('stress')}" fill="none" stroke="var(--crit)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const last=yrs[yrs.length-1];
+  s+=`<circle cx="${X(T)}" cy="${Y(last.exp)}" r="4" fill="var(--ink)" stroke="var(--surface)" stroke-width="2"/>`;
+  s+=`<circle cx="${X(T)}" cy="${Y(last.stress)}" r="4" fill="var(--crit)" stroke="var(--surface)" stroke-width="2"/>`;
+  let ly1=Y(last.stress),ly2=Y(last.exp);
+  if(Math.abs(ly1-ly2)<14){const mid=(ly1+ly2)/2;ly1=mid-7;ly2=mid+7;}
+  s+=`<text x="${X(T)+8}" y="${ly1+4}" font-size="11.5" font-weight="600" fill="var(--ink2)" font-family="var(--sans)">stress LGD</text>`;
+  s+=`<text x="${X(T)+8}" y="${ly2+4}" font-size="11.5" font-weight="600" fill="var(--ink2)" font-family="var(--sans)">expected LGD</text>`;
+  // x axis
+  s+=`<line x1="${pl}" x2="${pl+pw}" y1="${pt+ph}" y2="${pt+ph}" stroke="var(--axis)" stroke-width="1"/>`;
+  yrs.forEach(y=>{s+=`<text x="${X(y.t)}" y="${H-12}" text-anchor="middle" font-size="11" fill="var(--muted)">Yr ${y.t}</text>`;});
+  // hover overlay
+  s+=`<line id="axh" x1="0" x2="0" y1="${pt}" y2="${pt+ph}" stroke="var(--axis)" stroke-width="1" visibility="hidden"/>`;
+  s+=`<rect id="aov" x="${pl-10}" y="${pt}" width="${pw+20}" height="${ph}" fill="transparent"/>`;
+  $('#chartA').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Exposure versus credit support by year of default">${s}</svg>`;
+  CH.A={yrs,cum,X,T};
+  legend($('#legA'),[
+    ...LAYERS.filter(L=>yrs.some(y=>y.caps[L.k]>1e-6)).map(L=>({n:L.n,c:`var(${L.v})`})),
+    {n:'Expected LGD',c:'var(--ink)',line:true},{n:'Stress LGD (correction)',c:'var(--crit)',line:true},
+    {n:'Uncovered stress gap',c:'color-mix(in srgb, var(--crit) 25%, var(--surface))'}
+  ]);
+  const svg=$('#chartA svg'), ov=svg.querySelector('#aov'), xh=svg.querySelector('#axh');
+  ov.addEventListener('pointermove',e=>{
+    const r=svg.getBoundingClientRect();
+    const mx=(e.clientX-r.left)*(W/r.width);
+    let bi=0,bd=1e9;
+    yrs.forEach((y,i)=>{const d=Math.abs(X(y.t)-mx);if(d<bd){bd=d;bi=i;}});
+    const y=yrs[bi];
+    xh.setAttribute('x1',X(y.t));xh.setAttribute('x2',X(y.t));xh.setAttribute('visibility','visible');
+    const cs=getComputedStyle(document.documentElement);
+    const rowsH=`<div class="tt">Default in year ${y.t}</div>`
+      +tipRow(cs.getPropertyValue('--crit').trim(),'Stress LGD',fM(y.stress))
+      +tipRow(cs.getPropertyValue('--ink').trim(),'Expected LGD',fM(y.exp))
+      +LAYERS.filter(L=>y.caps[L.k]>1e-6).map(L=>tipRow(cs.getPropertyValue(L.v).trim(),L.n,fM(y.caps[L.k]),true)).join('')
+      +tipRow(cs.getPropertyValue('--crit').trim(),'Stress gap',fM(Math.max(0,y.stress-stackTop(y))),true);
+    showTip(rowsH,e.clientX,e.clientY);
+  });
+  ov.addEventListener('pointerleave',()=>{xh.setAttribute('visibility','hidden');hideTip();});
+  table($('#tableA'),['Default year','Stress LGD','Expected LGD',...LAYERS.map(l=>l.n),'Stress gap'],
+    yrs.map(y=>[`Year ${y.t}`,fM(y.stress),fM(y.exp),...LAYERS.map(L=>fM(y.caps[L.k])),fM(Math.max(0,y.stress-stackTop(y)))]));
+}
+
+/* ---- B: hazard bars + cumulative line ---- */
+function renderB(st){
+  const pr=SC.pr, h=SC.h;
+  const wm=pr.boom*REG.boom.h+pr.base*REG.base.h+pr.corr*REG.corr.h;
+  const hw=h.map(v=>clamp(v*wm,0,0.6));
+  const cum=[];let sv=1;hw.forEach(v=>{sv*=(1-v);cum.push(1-sv);});
+  const maxY=Math.max(...cum)*1.18||0.1;
+  const W=430,H=270,pl=46,prt=14,pt=14,pb=34,pw=W-pl-prt,ph=H-pt-pb;
+  const T=st.term;
+  const band=pw/T, bw=Math.min(24,band-10);
+  const Y=v=>pt+ph-(v/maxY)*ph;
+  let s='';
+  ticks(maxY).forEach(v=>{s+=`<line x1="${pl}" x2="${pl+pw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${pl-7}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${Math.round(v*100)}%</text>`;});
+  const bars=[];
+  hw.forEach((v,i)=>{
+    const x=pl+band*i+(band-bw)/2, y=Y(v), hh=pt+ph-y;
+    bars.push({i,x,v});
+    s+=`<path class="hb" data-i="${i}" d="M${x},${pt+ph} L${x},${y+4} Q${x},${y} ${x+4},${y} L${x+bw-4},${y} Q${x+bw},${y} ${x+bw},${y+4} L${x+bw},${pt+ph} Z" fill="var(--s1)"/>`;
+  });
+  const pts=cum.map((v,i)=>`${pl+band*i+band/2},${Y(v)}`).join(' ');
+  s+=`<polyline points="${pts}" fill="none" stroke="var(--s2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const lx=pl+band*(T-1)+band/2;
+  s+=`<circle cx="${lx}" cy="${Y(cum[T-1])}" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"/>`;
+  s+=`<text x="${lx-8}" y="${Y(cum[T-1])-9}" text-anchor="end" font-size="11.5" font-weight="600" fill="var(--ink2)" font-family="var(--sans)">${Math.round(cum[T-1]*100)}% cumulative</text>`;
+  s+=`<line x1="${pl}" x2="${pl+pw}" y1="${pt+ph}" y2="${pt+ph}" stroke="var(--axis)"/>`;
+  for(let t=1;t<=T;t++)s+=`<text x="${pl+band*(t-1)+band/2}" y="${H-11}" text-anchor="middle" font-size="11" fill="var(--muted)">${t}</text>`;
+  $('#chartB').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Annual default hazard and cumulative default probability">${s}</svg>`;
+  legend($('#legB'),[{n:'Annual hazard',c:'var(--s1)'},{n:'Cumulative P(default)',c:'var(--s2)',line:true}]);
+  const svg=$('#chartB svg');
+  svg.querySelectorAll('.hb').forEach(b=>{
+    b.addEventListener('pointermove',e=>{
+      const i=+b.dataset.i;const cs=getComputedStyle(document.documentElement);
+      showTip(`<div class="tt">Year ${i+1}</div>`
+        +tipRow(cs.getPropertyValue('--s1').trim(),'Annual hazard',fP(hw[i]),true)
+        +tipRow(cs.getPropertyValue('--s2').trim(),'Cumulative',fP(cum[i])),e.clientX,e.clientY);
+      b.setAttribute('opacity','0.8');
+    });
+    b.addEventListener('pointerleave',()=>{hideTip();b.removeAttribute('opacity');});
+  });
+  table($('#tableB'),['Year','Annual hazard','Cumulative P(default)'],
+    hw.map((v,i)=>[`Year ${i+1}`,fP(v),fP(cum[i])]));
+  return {hw,cum};
+}
+
+/* ---- C: conditional loss histogram ---- */
+function renderC(st,M){
+  const u=[],hh=[];
+  SC.rows.forEach((r,i)=>{if(r.def){u.push(M.ul[i]);hh.push(M.hl[i]);}});
+  if(!u.length){$('#chartC').innerHTML='';return;}
+  const us=[...u].sort((a,b)=>a-b);
+  const lo=Math.min(0,us[0]), hi=us[Math.floor(us.length*0.99)]*1.02||1;
+  const NB=16,bwv=(hi-lo)/NB;
+  const bu=new Array(NB).fill(0), bh=new Array(NB).fill(0);
+  const binOf=v=>clamp(Math.floor((v-lo)/bwv),0,NB-1);
+  u.forEach(v=>bu[binOf(Math.min(v,hi-1e-9))]++);
+  hh.forEach(v=>bh[binOf(Math.min(v,hi-1e-9))]++);
+  const maxC=Math.max(...bu,...bh)*1.12;
+  const W=430,H=270,pl=40,prt=14,pt=16,pb=44,pw=W-pl-prt,ph=H-pt-pb;
+  const Xv=v=>pl+(v-lo)/(hi-lo)*pw;
+  const Y=c=>pt+ph-(c/maxC)*ph;
+  let s='';
+  ticks(maxC,3).forEach(v=>{s+=`<line x1="${pl}" x2="${pl+pw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end" font-size="10.5" fill="var(--muted)">${Math.round(v)}</text>`;});
+  const bandW=pw/NB, half=(bandW-6)/2;
+  for(let i=0;i<NB;i++){
+    const x0=pl+bandW*i+2;
+    [[bu[i],'var(--s2)',x0,'unh'],[bh[i],'var(--s1)',x0+half+2,'hed']].forEach(([c,col,x,kind])=>{
+      const y=Y(c),bh_=pt+ph-y;
+      if(bh_<0.5){return;}
+      s+=`<path class="cb" data-i="${i}" data-k="${kind}" d="M${x},${pt+ph} L${x},${Math.min(y+3,pt+ph)} Q${x},${y} ${x+3},${y} L${x+half-3},${y} Q${x+half},${y} ${x+half},${Math.min(y+3,pt+ph)} L${x+half},${pt+ph} Z" fill="${col}"/>`;
+    });
+    s+=`<rect class="cbhit" data-i="${i}" x="${pl+bandW*i}" y="${pt}" width="${bandW}" height="${ph}" fill="transparent"/>`;
+  }
+  s+=`<line x1="${pl}" x2="${pl+pw}" y1="${pt+ph}" y2="${pt+ph}" stroke="var(--axis)"/>`;
+  {const st_=niceStep((hi-lo)/4);for(let vv=Math.ceil(lo/st_)*st_;vv<=hi+1e-9;vv+=st_){s+=`<text x="${Xv(vv)}" y="${H-26}" text-anchor="middle" font-size="10.5" fill="var(--muted)">${vv<0?'−':''}$${Math.abs(Math.round(vv))}M</text>`;}}
+  // CVaR markers
+  [[M.su.cvar,'var(--s2)','CVaR₉₅ unhedged'],[M.sh.cvar,'var(--s1)','CVaR₉₅ hedged']].forEach(([v,c,l],i)=>{
+    if(v<=lo||v>=hi)return;
+    s+=`<line x1="${Xv(v)}" x2="${Xv(v)}" y1="${pt}" y2="${pt+ph}" stroke="${c}" stroke-width="1.5" opacity="0.85"/>`;
+    s+=`<text x="${Xv(v)}" y="${pt-3}" text-anchor="middle" font-size="9.5" fill="var(--ink2)" font-family="var(--sans)">▼</text>`;
+  });
+  s+=`<text x="${pl+pw/2}" y="${H-8}" text-anchor="middle" font-size="10.5" fill="var(--muted)" font-family="var(--sans)">loss per path, conditional on default (▼ = CVaR₉₅)</text>`;
+  $('#chartC').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Loss distribution conditional on default, hedged versus unhedged">${s}</svg>`;
+  legend($('#legC'),[{n:'Unhedged',c:'var(--s2)'},{n:'With current stack',c:'var(--s1)'}]);
+  const svg=$('#chartC svg');
+  svg.querySelectorAll('.cbhit').forEach(r=>{
+    r.addEventListener('pointermove',e=>{
+      const i=+r.dataset.i;const cs=getComputedStyle(document.documentElement);
+      const a=lo+bwv*i,b=lo+bwv*(i+1);
+      showTip(`<div class="tt">${fM(a)} to ${fM(b)}</div>`
+        +tipRow(cs.getPropertyValue('--s2').trim(),'Unhedged paths',bu[i],true)
+        +tipRow(cs.getPropertyValue('--s1').trim(),'Hedged paths',bh[i],true),e.clientX,e.clientY);
+    });
+    r.addEventListener('pointerleave',hideTip);
+  });
+  table($('#tableC'),['Loss bin','Unhedged paths','Hedged paths'],
+    bu.map((c,i)=>[`${fM(lo+bwv*i)} – ${fM(lo+bwv*(i+1))}`,c,bh[i]]));
+}
+
+/* ---- D: stress waterfall ---- */
+function renderD(st){
+  const T=st.term;
+  const yc=$('#wfyears');
+  yc.innerHTML='';
+  for(let t=1;t<=T;t++){
+    const b=document.createElement('button');
+    b.className='ychip';b.textContent='Yr '+t;
+    b.setAttribute('aria-pressed',String(t===st.wfYear));
+    b.addEventListener('click',()=>{state.wfYear=t;renderD(state);});
+    yc.appendChild(b);
+  }
+  const x=st.wfYear-0.5, jm={dt:.5,sp:.5,arr:.5};
+  const gross=Math.max(0,grossLoss(st,x,'corr',jm));
+  const caps=layerCaps(st,x,'corr');
+  let rem=gross;
+  const steps=[{n:'Gross loss',v:gross,c:'var(--axis)',kind:'g'}];
+  LAYERS.forEach(L=>{
+    const used=Math.min(rem,caps[L.k]);rem-=used;
+    if(caps[L.k]>1e-6)steps.push({n:L.n,v:used,c:`var(${L.v})`,kind:'l'});
+  });
+  steps.push({n:'Landlord residual',v:rem,c:'var(--crit)',kind:'r'});
+  const W=430,H=270,pl=40,prt=12,pt=20,pb=58,pw=W-pl-prt,ph=H-pt-pb;
+  const maxY=Math.max(gross,1)*1.12;
+  const Y=v=>pt+ph-(v/maxY)*ph;
+  const band=pw/steps.length, bw=Math.min(24,band-8);
+  let s='';
+  ticks(maxY,3).forEach(v=>{s+=`<line x1="${pl}" x2="${pl+pw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end" font-size="10.5" fill="var(--muted)">$${Math.round(v)}M</text>`;});
+  let top=gross;
+  steps.forEach((sp,i)=>{
+    const x0=pl+band*i+(band-bw)/2;
+    let y0,y1;
+    if(sp.kind==='g'){y0=Y(gross);y1=Y(0);}
+    else if(sp.kind==='r'){y0=Y(sp.v);y1=Y(0);}
+    else {y0=Y(top);y1=Y(top-sp.v);top-=sp.v;}
+    const hh=Math.max(1.5,y1-y0);
+    s+=`<rect class="wb" data-i="${i}" x="${x0}" y="${y0}" width="${bw}" height="${hh}" rx="3" fill="${sp.c}" stroke="var(--surface)" stroke-width="2"/>`;
+    if(sp.kind==='l'&&i<steps.length-1){
+      s+=`<line x1="${x0+bw}" x2="${pl+band*(i+1)+(band-bw)/2}" y1="${y1}" y2="${y1}" stroke="var(--axis)" stroke-width="1"/>`;
+    }
+    const lbl=sp.kind==='l'?'−'+fM(sp.v).replace('−',''):fM(sp.v);
+    s+=`<text x="${x0+bw/2}" y="${y0-5}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink2)">${lbl}</text>`;
+    const words=sp.n.split(' ');
+    words.forEach((w,wi)=>{s+=`<text x="${x0+bw/2}" y="${pt+ph+14+wi*11}" text-anchor="middle" font-size="9.5" fill="var(--muted)" font-family="var(--sans)">${esc(w)}</text>`;});
+  });
+  s+=`<line x1="${pl}" x2="${pl+pw}" y1="${pt+ph}" y2="${pt+ph}" stroke="var(--axis)"/>`;
+  $('#chartD').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Stress-case loss waterfall">${s}</svg>`;
+  const svg=$('#chartD svg');
+  svg.querySelectorAll('.wb').forEach(r=>{
+    r.addEventListener('pointermove',e=>{
+      const sp=steps[+r.dataset.i];
+      showTip(`<div class="tt">${esc(sp.n)}</div>`+tipRow(sp.c.startsWith('var')?getComputedStyle(document.documentElement).getPropertyValue(sp.c.slice(4,-1)).trim():sp.c,(sp.kind==='l'?'Absorbs':'Amount'),fM(sp.v),true),e.clientX,e.clientY);
+      r.setAttribute('opacity','0.85');
+    });
+    r.addEventListener('pointerleave',()=>{hideTip();r.removeAttribute('opacity');});
+  });
+  table($('#tableD'),['Component','Amount'],steps.map(sp=>[sp.n,(sp.kind==='l'?'− ':'')+fM(sp.v)]));
+}
+
+/* ---- E: frontier ---- */
+function packageConfigs(st){
+  const c=o=>JSON.parse(JSON.stringify(Object.assign({},st,o)));
+  const off={dep:{on:false,m:0},lc:{on:false,m:0},gpu:{on:false,v:st.gpu.v,p:st.gpu.p},rev:{on:false,s:50},gty:{on:false,m:6},ins:{on:false,c:15}};
+  return [
+    {n:'Nothing',cfg:c(off)},
+    {n:'Deposit 6mo',cfg:c(Object.assign({},off,{dep:{on:true,m:6}}))},
+    {n:'Dep + LC',cfg:c(Object.assign({},off,{dep:{on:true,m:6},lc:{on:true,m:8}}))},
+    {n:'Dep + LC + GPU',cfg:c(Object.assign({},off,{dep:{on:true,m:6},lc:{on:true,m:8},gpu:{on:true,v:st.gpu.v,p:st.gpu.p}}))},
+    {n:'Insurance-led',cfg:c(Object.assign({},off,{dep:{on:true,m:4},ins:{on:true,c:20}}))},
+    {n:'Full stack',cfg:c(Object.assign({},off,{dep:{on:true,m:6},lc:{on:true,m:8},gpu:{on:true,v:st.gpu.v,p:st.gpu.p},rev:{on:true,s:50},ins:{on:true,c:15}}))}
+  ];
+}
+function renderE(st,M){
+  const pk=packageConfigs(st).map(p=>{const r=evalHedges(p.cfg);return {n:p.n,cost:r.cost/st.rent*100,cvar:r.sh.cvar};});
+  const cur={n:'Current stack',cost:M.cost/st.rent*100,cvar:M.sh.cvar};
+  const all=[...pk,cur];
+  const maxX=Math.max(...all.map(p=>p.cost),1)*1.2, maxY=Math.max(...all.map(p=>p.cvar),1)*1.15;
+  const W=430,H=270,pl=46,prt=16,pt=16,pb=44,pw=W-pl-prt,ph=H-pt-pb;
+  const X=v=>pl+v/maxX*pw, Y=v=>pt+ph-(v/maxY)*ph;
+  let s='';
+  ticks(maxY,3).forEach(v=>{s+=`<line x1="${pl}" x2="${pl+pw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end" font-size="10.5" fill="var(--muted)">$${Math.round(v)}M</text>`;});
+  const tolM=st.tol*st.rent/12;
+  if(tolM<maxY){s+=`<line x1="${pl}" x2="${pl+pw}" y1="${Y(tolM)}" y2="${Y(tolM)}" stroke="var(--ink)" stroke-width="1" opacity="0.55"/><text x="${pl+pw}" y="${Y(tolM)-4}" text-anchor="end" font-size="9.5" fill="var(--ink2)" font-family="var(--sans)">tolerance</text>`;}
+  s+=`<line x1="${pl}" x2="${pl+pw}" y1="${pt+ph}" y2="${pt+ph}" stroke="var(--axis)"/>`;
+  ticks(maxX,4).forEach(v=>{s+=`<text x="${X(v)}" y="${H-26}" text-anchor="middle" font-size="10.5" fill="var(--muted)">${v.toFixed(0)}%</text>`;});
+  s+=`<text x="${pl+pw/2}" y="${H-8}" text-anchor="middle" font-size="10.5" fill="var(--muted)" font-family="var(--sans)">annual stack cost, % of rent</text>`;
+  all.forEach((p,i)=>{
+    const isCur=p===cur;
+    s+=`<circle class="fp" data-i="${i}" cx="${X(p.cost)}" cy="${Y(p.cvar)}" r="${isCur?7:5.5}" fill="var(--s1)" stroke="var(--surface)" stroke-width="2" ${isCur?'stroke="var(--ink)" stroke-width="2"':''}/>`;
+    const anchor=X(p.cost)>pl+pw*0.72?'end':'start';
+    const dx=anchor==='end'?-9:9;
+    s+=`<text x="${X(p.cost)+dx}" y="${Y(p.cvar)+(i%2?12:-8)}" text-anchor="${anchor}" font-size="10" fill="var(--ink2)" font-family="var(--sans)" font-weight="${isCur?'700':'400'}">${esc(p.n)}</text>`;
+    s+=`<circle class="fphit" data-i="${i}" cx="${X(p.cost)}" cy="${Y(p.cvar)}" r="14" fill="transparent"/>`;
+  });
+  $('#chartE').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cost versus residual tail risk for candidate packages">${s}</svg>`;
+  const svg=$('#chartE svg');
+  svg.querySelectorAll('.fphit').forEach(c=>{
+    c.addEventListener('pointermove',e=>{
+      const p=all[+c.dataset.i];const cs=getComputedStyle(document.documentElement);
+      showTip(`<div class="tt">${esc(p.n)}</div>`
+        +tipRow(cs.getPropertyValue('--s1').trim(),'Residual CVaR₉₅',fM(p.cvar),true)
+        +tipRow(cs.getPropertyValue('--muted').trim(),'Annual cost',p.cost.toFixed(1)+'% of rent',true),e.clientX,e.clientY);
+    });
+    c.addEventListener('pointerleave',hideTip);
+  });
+  table($('#tableE'),['Package','Annual cost (% rent)','Residual CVaR₉₅'],
+    all.map(p=>[p.n,p.cost.toFixed(1)+'%',fM(p.cvar)]));
+}
+
+/* ================= verdict, tiles, term sheet ================= */
+function verdictOf(st,M){
+  const tolM=st.tol*st.rent/12;
+  const v=M.sh.cvar;
+  if(v<=tolM)return {w:'SIGNABLE',c:'var(--good)',t:'good'};
+  if(v<=tolM*1.3)return {w:'MARGINAL',c:'var(--warn)',t:'warn'};
+  return {w:'NOT SIGNABLE',c:'var(--crit)',t:'crit'};
+}
+function renderVerdict(st,M){
+  const tolM=st.tol*st.rent/12;
+  const vd=verdictOf(st,M);
+  $('#vword').innerHTML=`<span class="dot" style="background:${vd.c}"></span>${vd.w}`;
+  $('#vsub').textContent=vd.t==='good'
+    ? `Residual tail loss ${fM(M.sh.cvar)} sits inside the landlord's ${fM(tolM)} tolerance — the stack de-risks the lease enough to sign.`
+    : vd.t==='warn'
+    ? `Residual tail loss ${fM(M.sh.cvar)} is within 30% of tolerance — one more instrument or tighter sizing closes it.`
+    : `Residual tail loss ${fM(M.sh.cvar)} exceeds the ${fM(tolM)} tolerance — as structured, a rational landlord walks.`;
+  const fill=$('#vfill');
+  const pct=clamp(M.sh.cvar/tolM,0,2)/2*100;
+  fill.style.width=Math.max(2,pct)+'%';
+  fill.style.background=vd.c;
+  $('#vmetermax').textContent='2× tolerance = '+fM(tolM*2);
+}
+function renderTiles(st,M){
+  $('#t_pd').textContent=fP(M.pdef);
+  $('#t_el').textContent=fM(M.sh.mean);
+  const dEl=$('#t_el_d');
+  if(M.su.mean>0.05){const d=(1-M.sh.mean/M.su.mean)*100;dEl.textContent='↓ '+d.toFixed(0)+'% vs unhedged '+fM(M.su.mean);dEl.className='td down';}
+  else {dEl.textContent='unhedged '+fM(M.su.mean);dEl.className='td flat';}
+  $('#t_cv').textContent=fM(M.sh.cvar);
+  const dCv=$('#t_cv_d');
+  if(M.su.cvar>0.05){const d=(1-M.sh.cvar/M.su.cvar)*100;dCv.textContent='↓ '+d.toFixed(0)+'% vs unhedged '+fM(M.su.cvar);dCv.className='td down';}
+  else {dCv.textContent='unhedged '+fM(M.su.cvar);dCv.className='td flat';}
+  $('#t_cost').textContent=fM2(M.cost)+'/yr';
+  $('#t_cost_d').textContent=(M.cost/st.rent*100).toFixed(1)+'% of rent';
+}
+function renderCosts(st,M){
+  const m=st.rent/12;
+  const put=(id,v)=>{$(id).textContent=v;};
+  put('#dep_cost',st.dep.on&&st.dep.m>0?fM2(0.11*st.dep.m*m)+'/yr drag':'—');
+  put('#lc_cost',st.lc.on&&st.lc.m>0?fM2(0.0225*st.lc.m*m)+'/yr fee':'—');
+  put('#gpu_cost',st.gpu.on?fM2(0.10)+'/yr':'—');
+  put('#rev_cost',st.rev.on?fM2(0.05)+'/yr':'—');
+  put('#gty_cost',st.gty.on&&st.gty.m>0?fM2(0.015*st.gty.m*m)+'/yr fee':'—');
+  put('#ins_cost',st.ins.on&&st.ins.c>0?fM2(M.insPrem)+'/yr prem':'—');
+}
+function termSheet(st,M){
+  const m=st.rent/12, tolM=st.tol*st.rent/12, vd=verdictOf(st,M);
+  const pad=(a,b)=>('  '+a+' ').padEnd(30,'.')+' '+b;
+  const L=[];
+  L.push('BACKSTOP — DRAFT CREDIT-SUPPORT TERM SHEET (NON-BINDING)');
+  L.push('─'.repeat(64));
+  L.push(pad('Tenant',`${STAGEN[st.stage]} NeoCloud operator · ${st.runway} mo runway`));
+  L.push(pad('Backlog',`$${st.backlog}M contracted, ${GRADEN[st.grade]} · top customer ${st.conc}%`));
+  L.push(pad('Lease',`$${st.rent}M/yr × ${st.term} yrs · landlord fit-out $${st.capex}M`));
+  L.push(pad('Market view',{'-1':'correction-biased','0':'balanced','1':'boom-biased'}[String(st.outlook)]));
+  L.push('');
+  L.push(pad('P(default in term)',fP(M.pdef)));
+  L.push(pad('Unhedged EL / CVaR95',`${fM(M.su.mean)} / ${fM(M.su.cvar)}`));
+  L.push('');
+  L.push('CREDIT SUPPORT (seniority order)');
+  let n=0;
+  if(st.dep.on&&st.dep.m>0)L.push(pad(`${++n}. Security deposit`,`${st.dep.m} mo rent (${fM(st.dep.m*m)}), landlord-controlled escrow`));
+  if(st.lc.on&&st.lc.m>0)L.push(pad(`${++n}. Letter of credit`,`${st.lc.m} mo rent (${fM(st.lc.m*m)}) evergreen, ratable burn-down`));
+  if(st.gpu.on)L.push(pad(`${++n}. GPU fleet lien`,`${st.gpu.p} lien, fleet book ${fM(st.gpu.v)}${st.gpu.p==='second'?' (junior to equipment lenders)':''}`));
+  if(st.rev.on&&st.rev.s>0)L.push(pad(`${++n}. Revenue assignment`,`${st.rev.s}% of contracted backlog assigns on default`));
+  if(st.gty.on&&st.gty.m>0)L.push(pad(`${++n}. Sponsor guarantee`,`${st.gty.m} mo rent (${fM(st.gty.m*m)})`));
+  if(st.ins.on&&st.ins.c>0)L.push(pad(`${++n}. Default insurance`,`limit ${fM(st.ins.c/100*st.rent*st.term)} (${st.ins.c}% of total rent), excess of collateral`));
+  if(n===0)L.push('  (none — lease is unsupported)');
+  L.push('');
+  L.push(pad('Residual EL / CVaR95',`${fM(M.sh.mean)} / ${fM(M.sh.cvar)}`));
+  L.push(pad('Landlord tolerance',`${fM(tolM)} CVaR95 (${st.tol} mo rent)`));
+  L.push(pad('Verdict',vd.w));
+  L.push(pad('Stack cost',`${fM2(M.cost)}/yr (${(M.cost/st.rent*100).toFixed(1)}% of rent)`));
+  if(M.costs.length){
+    L.push('');
+    L.push('COST DETAIL');
+    M.costs.forEach(c=>L.push(pad('  '+c.n,fM2(c.v)+'/yr')));
+  }
+  L.push('');
+  L.push('Model output for negotiation support only — not investment,');
+  L.push('insurance, or legal advice. Assumptions per methodology note.');
+  $('#ts').textContent=L.join('\n');
+}
+
+/* ================= auto-structure ================= */
+function autoStructure(){
+  const tolM=state.tol*state.rent/12;
+  const clone=s=>JSON.parse(JSON.stringify(s));
+  let cur=clone(state);
+  let best=evalHedges(cur);
+  const btn=$('#autobtn');btn.disabled=true;
+  let iters=0;
+  while(best.sh.cvar>tolM&&iters<48){
+    iters++;
+    const cands=[];
+    const push=(mut,desc)=>{const c=clone(cur);mut(c);cands.push({c,desc});};
+    if(cur.dep.m<12)push(c=>{c.dep.on=true;c.dep.m=Math.min(12,c.dep.m+2);},'dep');
+    if(cur.lc.m<12)push(c=>{c.lc.on=true;c.lc.m=Math.min(12,c.lc.m+2);},'lc');
+    if(!cur.gpu.on&&cur.gpu.v>0)push(c=>{c.gpu.on=true;},'gpu');
+    if(!cur.rev.on&&cur.backlog>0)push(c=>{c.rev.on=true;c.rev.s=50;},'rev');
+    else if(cur.rev.on&&cur.rev.s<100)push(c=>{c.rev.s=Math.min(100,c.rev.s+25);},'rev+');
+    if(!cur.ins.on)push(c=>{c.ins.on=true;c.ins.c=Math.max(5,c.ins.c?Math.min(c.ins.c,5):5);c.ins.c=5;},'ins');
+    else if(cur.ins.c<40)push(c=>{c.ins.c=Math.min(40,c.ins.c+5);},'ins+');
+    if(!cur.gty.on)push(c=>{c.gty.on=true;c.gty.m=3;},'gty');
+    else if(cur.gty.m<12)push(c=>{c.gty.m=Math.min(12,c.gty.m+3);},'gty+');
+    if(!cands.length)break;
+    let bestC=null,bestScore=-1;
+    for(const cd of cands){
+      const r=evalHedges(cd.c);
+      const dRisk=best.sh.cvar-r.sh.cvar;
+      if(dRisk<=0.03)continue;
+      const dCost=Math.max(r.cost-best.cost,0.01);
+      const score=dRisk/dCost;
+      if(score>bestScore){bestScore=score;bestC={cd,r};}
+    }
+    if(!bestC)break;
+    cur=bestC.cd.c;best=bestC.r;
+  }
+  Object.assign(state,{dep:cur.dep,lc:cur.lc,gpu:cur.gpu,rev:cur.rev,gty:cur.gty,ins:cur.ins});
+  syncControls();
+  update(false);
+  const note=$('#solvenote');
+  note.textContent=best.sh.cvar<=tolM
+    ? `Solved in ${iters} steps: residual CVaR₉₅ ${fM(best.sh.cvar)} ≤ tolerance ${fM(tolM)} at ${fM2(best.cost)}/yr.`
+    : `Every instrument maxed — residual CVaR₉₅ ${fM(best.sh.cvar)} still exceeds ${fM(tolM)}. Raise tolerance, shorten term, or walk.`;
+  btn.disabled=false;
+}
+
+/* ================= wiring ================= */
+const BIND=[
+  ['stage',v=>state.stage=v,null,true],
+  ['runway',v=>state.runway=+v,v=>v+' mo',true],
+  ['backlog',v=>state.backlog=+v,v=>'$'+v+'M',true],
+  ['grade',v=>state.grade=v,null,true],
+  ['conc',v=>state.conc=+v,v=>v+'%',true],
+  ['rent',v=>state.rent=+v,v=>'$'+v+'M/yr',true],
+  ['term',v=>state.term=+v,v=>v+' yrs',true],
+  ['capex',v=>state.capex=+v,v=>'$'+v+'M',true],
+  ['outlook',v=>state.outlook=+v,null,true],
+  ['dep_on',v=>state.dep.on=v,null,false],['dep_m',v=>state.dep.m=+v,v=>v+' mo rent',false],
+  ['lc_on',v=>state.lc.on=v,null,false],['lc_m',v=>state.lc.m=+v,v=>v+' mo rent',false],
+  ['gpu_on',v=>state.gpu.on=v,null,false],['gpu_v',v=>state.gpu.v=+v,v=>'$'+v+'M',false],['gpu_p',v=>state.gpu.p=v,null,false],
+  ['rev_on',v=>state.rev.on=v,null,false],['rev_s',v=>state.rev.s=+v,v=>v+'%',false],
+  ['gty_on',v=>state.gty.on=v,null,false],['gty_m',v=>state.gty.m=+v,v=>v+' mo rent',false],
+  ['ins_on',v=>state.ins.on=v,null,false],['ins_c',v=>state.ins.c=+v,v=>v+'% of total rent',false],
+  ['tol',v=>state.tol=+v,v=>v+' mo rent',false]
+];
+let pending=null;
+function update(rebuild){
+  if(rebuild)buildScenarios(state);
+  state.wfYear=clamp(state.wfYear,1,state.term);
+  const M=evalHedges(state);
+  renderVerdict(state,M);renderTiles(state,M);renderCosts(state,M);
+  renderA(state);renderB(state);renderC(state,M);renderD(state);renderE(state,M);
+  termSheet(state,M);
+}
+function scheduleUpdate(rebuild){
+  if(pending)cancelAnimationFrame(pending);
+  pending=requestAnimationFrame(()=>{pending=null;update(rebuild);});
+}
+function syncControls(){
+  BIND.forEach(([id,,fmt])=>{
+    const el=document.getElementById(id);if(!el)return;
+    const path=id.split('_');
+    let v;
+    if(path.length===1||id==='gpu_v'||id==='gpu_p'){
+      v=id==='gpu_v'?state.gpu.v:id==='gpu_p'?state.gpu.p:state[id];
+    } else {
+      const [k,f]=path;
+      v=f==='on'?state[k].on:state[k][f==='m'?'m':f==='s'?'s':f==='c'?'c':f];
+    }
+    if(el.type==='checkbox')el.checked=!!v;else el.value=v;
+    const out=document.getElementById(id+'_v');
+    if(out&&fmt)out.textContent=fmt(v);
+  });
+  document.querySelectorAll('.inst').forEach(d=>{
+    const k=d.dataset.k;
+    d.classList.toggle('off',!state[k].on);
+  });
+}
+BIND.forEach(([id,set,fmt,rebuild])=>{
+  const el=document.getElementById(id);if(!el)return;
+  el.addEventListener('input',()=>{
+    const v=el.type==='checkbox'?el.checked:el.value;
+    set(v);
+    const out=document.getElementById(id+'_v');
+    if(out&&fmt)out.textContent=fmt(v);
+    if(el.type==='checkbox'){
+      const inst=el.closest('.inst');
+      if(inst)inst.classList.toggle('off',!el.checked);
+    }
+    scheduleUpdate(rebuild);
+  });
+});
+$('#autobtn').addEventListener('click',autoStructure);
+document.querySelectorAll('#presets .chip').forEach(ch=>{
+  ch.addEventListener('click',()=>{
+    document.querySelectorAll('#presets .chip').forEach(c=>c.setAttribute('aria-pressed','false'));
+    ch.setAttribute('aria-pressed','true');
+    const p=JSON.parse(JSON.stringify(PRESETS[ch.dataset.preset]));
+    Object.assign(state,p);state.wfYear=2;
+    syncControls();update(true);
+  });
+});
+document.querySelectorAll('.tblbtn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const k=b.dataset.for;
+    const on=b.getAttribute('aria-pressed')!=='true';
+    b.setAttribute('aria-pressed',String(on));
+    document.getElementById('chart'+k).classList.toggle('hidden',on);
+    document.getElementById('table'+k).classList.toggle('hidden',!on);
+  });
+});
+$('#copybtn').addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText($('#ts').textContent);$('#copybtn').textContent='copied';
+    setTimeout(()=>$('#copybtn').textContent='copy',1200);}catch(e){
+    const r=document.createRange();r.selectNodeContents($('#ts'));
+    const sel=getSelection();sel.removeAllRanges();sel.addRange(r);}
+});
+/* theme toggle: auto -> light -> dark */
+const themebtn=$('#themebtn');
+let themeMode='auto';
+themebtn.addEventListener('click',()=>{
+  themeMode=themeMode==='auto'?'light':themeMode==='light'?'dark':'auto';
+  const root=document.documentElement;
+  if(themeMode==='auto')delete root.dataset.theme;else root.dataset.theme=themeMode;
+  themebtn.textContent='theme: '+themeMode;
+});
+
+/* ================= boot ================= */
+syncControls();
+update(true);
+</script>
+</body></html>
