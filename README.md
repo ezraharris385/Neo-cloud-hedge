@@ -28,6 +28,23 @@ but the risk *can* be measured, layered, and hedged until a rational landlord si
    unhedged, a stress waterfall, and a cost-vs-protection frontier of standard packages.
 5. **Solve it** — a greedy optimizer assembles the minimum-cost stack whose residual
    tail loss clears the landlord's stated tolerance, then renders a draft term sheet.
+6. **Open the exotic desk** — a second tab for tenants the standard stack can't sign,
+   with frontier instruments that price off the same simulation (feasibility-tagged
+   from "street-legal" to "never been done"):
+   - **CIR** — Compute-indexed rent: rent floats with a GPU spot-price index, so
+     correction-regime default hazard falls and the re-let spread softens
+   - **DSP** — Dark-shell put: a hyperscaler backfills at 85 % of rent within 90 days
+   - **NDS-B** — Binary NeoCloud default swap: digital CDS paying full notional on
+     the default event (2.2× load; overshoots small losses, undershoots big ones)
+   - **AIW-CAT** — AI-winter cat bond: SPV notes wiped on a dual trigger
+     (tenant default × correction regime)
+   - **GRID** — Mutual guarantee pool: tenants insure each other, with an honest
+     80 % honor rate exactly when corrections drain the pool
+   - **RVG** — GPU residual-value guarantee: OEM resale floor upgrading the lien layer
+   - **WAR** — Warrant coverage: pays the landlord *for* the risk instead of
+     reducing it (income line, zero tail effect — shown honestly)
+
+   A second solver button is allowed to use the whole desk.
 
 The headline output is a **SIGNABLE / MARGINAL / NOT SIGNABLE** verdict: residual
 CVaR₉₅ against the landlord's tolerance, with the annual cost of getting there.

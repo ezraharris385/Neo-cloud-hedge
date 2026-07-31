@@ -10,6 +10,7 @@
   --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
   --good-text:#006300;
   --l1:#0d366b; --l2:#184f95; --l3:#256abf; --l4:#3987e5; --l5:#6da7ec; --l6:#86b6ef;
+  --x1:#8f3a10; --x2:#c14e1f; --x3:#eb6834;
   --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:ui-monospace,"SF Mono","Cascadia Code",Consolas,Menlo,monospace;
 }
@@ -22,6 +23,7 @@
     --s1:#3987e5; --s2:#d95926;
     --good-text:#0ca30c;
     --l1:#184f95; --l2:#256abf; --l3:#2a78d6; --l4:#3987e5; --l5:#6da7ec; --l6:#9ec5f4;
+    --x1:#c14e1f; --x2:#e0673a; --x3:#f0925f;
   }
 }
 :root[data-theme="dark"]{
@@ -32,6 +34,7 @@
   --s1:#3987e5; --s2:#d95926;
   --good-text:#0ca30c;
   --l1:#184f95; --l2:#256abf; --l3:#2a78d6; --l4:#3987e5; --l5:#6da7ec; --l6:#9ec5f4;
+  --x1:#c14e1f; --x2:#e0673a; --x3:#f0925f;
 }
 :root[data-theme="light"]{
   color-scheme: light;
@@ -41,6 +44,7 @@
   --s1:#2a78d6; --s2:#eb6834;
   --good-text:#006300;
   --l1:#0d366b; --l2:#184f95; --l3:#256abf; --l4:#3987e5; --l5:#6da7ec; --l6:#86b6ef;
+  --x1:#8f3a10; --x2:#c14e1f; --x3:#eb6834;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -81,6 +85,18 @@ select{width:100%;background:var(--surface);color:var(--ink);border:1px solid va
 input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tab{flex:1;background:none;border:1px solid var(--hairline);border-radius:8px;padding:7px 6px;font:600 12px var(--mono);color:var(--ink2);letter-spacing:.03em}
+.tab:hover{border-color:var(--axis)}
+.tab[aria-pressed="true"]{background:var(--accent-wash);border-color:var(--accent);color:var(--accent-deep)}
+.xmeta{display:flex;gap:6px;align-items:center;margin:5px 0 2px;flex-wrap:wrap}
+.tick{font:700 10px var(--mono);letter-spacing:.08em;background:var(--accent-wash);color:var(--accent-deep);border-radius:5px;padding:2px 7px}
+.feas{font:600 9.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;border:1px solid;border-radius:999px;padding:1.5px 8px}
+.feas-legal{color:var(--good-text);border-color:var(--good)}
+.feas-ready{color:var(--accent-deep);border-color:var(--accent)}
+.feas-consort{color:var(--ink2);border-color:var(--warn)}
+.feas-lawyers{color:var(--ink2);border-color:var(--serious)}
+.feas-never{color:var(--crit);border-color:var(--crit)}
 .inst{border-top:1px solid var(--hairline);padding:10px 0 4px;margin-top:6px}
 .inst:first-of-type{border-top:none;margin-top:0;padding-top:2px}
 .ihead{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -241,7 +257,12 @@ footer.foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--hairline
 
   <section class="card">
     <h2>Credit-support stack</h2>
+    <div class="tabs" role="tablist">
+      <button class="tab" id="tabbtn_std" aria-pressed="true">Standard</button>
+      <button class="tab" id="tabbtn_exo" aria-pressed="false">Exotic desk</button>
+    </div>
 
+    <div id="tab_std">
     <div class="inst" data-k="dep">
       <div class="ihead"><label class="sw"><input type="checkbox" id="dep_on" checked><span>Security deposit</span></label><span class="icost" id="dep_cost"></span></div>
       <label class="ctl sub"><span class="cl">Size <output id="dep_m_v"></output></span>
@@ -287,6 +308,66 @@ footer.foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--hairline
 
     <button class="solve" id="autobtn">Solve minimum-cost stack</button>
     <p class="solvenote" id="solvenote">Greedy search for the cheapest stack whose tail loss clears the landlord&rsquo;s tolerance.</p>
+    </div>
+
+    <div id="tab_exo" class="hidden">
+    <p class="inote" style="margin:0 0 6px">For tenants the standard stack can&rsquo;t sign. Everything here prices off the same 6,000 paths &mdash; some of it is market practice, some has never been done. Feasibility tags are honest.</p>
+
+    <div class="inst" data-k="x_cir">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="x_cir_on"><span>Compute-indexed rent</span></label><span class="icost" id="x_cir_cost"></span></div>
+      <div class="xmeta"><span class="tick">CIR</span><span class="feas feas-never">never been done</span></div>
+      <p class="inote">Rent floats with a GPU spot-price index: relief in an AI winter (correction-regime default hazard falls), premium in a boom. The lease itself becomes the hedge.</p>
+      <label class="ctl sub"><span class="cl">Index participation <output id="x_cir_p_v"></output></span>
+        <input type="range" id="x_cir_p" min="0" max="50" step="5" value="25"></label>
+    </div>
+
+    <div class="inst" data-k="x_put">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="x_put_on"><span>Dark-shell put</span></label><span class="icost" id="x_put_cost"></span></div>
+      <div class="xmeta"><span class="tick">DSP</span><span class="feas feas-ready">term-sheet ready</span></div>
+      <p class="inote">A hyperscaler or operator fund writes the landlord a put: if the shell goes dark they step in at 85% of rent within 90 days. Caps downtime and floors the re-let spread.</p>
+    </div>
+
+    <div class="inst" data-k="x_nds">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="x_nds_on"><span>Binary default swap</span></label><span class="icost" id="x_nds_cost"></span></div>
+      <div class="xmeta"><span class="tick">NDS-B</span><span class="feas feas-lawyers">call your lawyers</span></div>
+      <p class="inote">A digital CDS written by AI-bull funds: pays the full notional on the default <em>event</em>, whatever the actual loss. Overshoots small losses, undershoots big ones &mdash; priced at a 2.2&times; load.</p>
+      <label class="ctl sub"><span class="cl">Notional <output id="x_nds_n_v"></output></span>
+        <input type="range" id="x_nds_n" min="0" max="40" step="2" value="10"></label>
+    </div>
+
+    <div class="inst" data-k="x_cat">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="x_cat_on"><span>AI-winter cat bond</span></label><span class="icost" id="x_cat_cost"></span></div>
+      <div class="xmeta"><span class="tick">AIW-CAT</span><span class="feas feas-never">never been done</span></div>
+      <p class="inote">An SPV issues notes whose principal is wiped on a dual trigger: this tenant defaults <em>and</em> the market is in correction. Investors clip a fat coupon for holding the AI-winter tail.</p>
+      <label class="ctl sub"><span class="cl">Note principal <output id="x_cat_n_v"></output></span>
+        <input type="range" id="x_cat_n" min="0" max="40" step="2" value="15"></label>
+    </div>
+
+    <div class="inst" data-k="x_mut">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="x_mut_on"><span>Mutual guarantee pool</span></label><span class="icost" id="x_mut_cost"></span></div>
+      <div class="xmeta"><span class="tick">GRID</span><span class="feas feas-consort">needs a consortium</span></div>
+      <p class="inote">NeoCloud tenants mutually insure each other&rsquo;s leases, FDIC-style. Honest catch: in a correction the pool drains &mdash; modeled at an 80% honor rate exactly when you need it.</p>
+      <label class="ctl sub"><span class="cl">Pool cover <output id="x_mut_m_v"></output></span>
+        <input type="range" id="x_mut_m" min="0" max="8" step="1" value="4"></label>
+    </div>
+
+    <div class="inst" data-k="x_rvs">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="x_rvs_on"><span>GPU residual-value guarantee</span></label><span class="icost" id="x_rvs_cost"></span></div>
+      <div class="xmeta"><span class="tick">RVG</span><span class="feas feas-legal">street-legal</span></div>
+      <p class="inote">The OEM guarantees a resale floor on the fleet &mdash; lifts the lien&rsquo;s fire-sale haircut from 45% to 62% and removes the correction discount. Needs the GPU lien switched on.</p>
+    </div>
+
+    <div class="inst" data-k="x_war">
+      <div class="ihead"><label class="sw"><input type="checkbox" id="x_war_on"><span>Warrant coverage</span></label><span class="icost" id="x_war_cost"></span></div>
+      <div class="xmeta"><span class="tick">WAR</span><span class="feas feas-legal">street-legal</span></div>
+      <p class="inote">Warrants over tenant equity. Worth nothing in the default paths, so the tail doesn&rsquo;t move &mdash; this one <em>pays you for bearing</em> the risk instead of reducing it. Shows up as income.</p>
+      <label class="ctl sub"><span class="cl">Warrant notional <output id="x_war_w_v"></output></span>
+        <input type="range" id="x_war_w" min="0" max="100" step="5" value="30"></label>
+    </div>
+
+    <button class="solve" id="exobtn">Solve with exotics allowed</button>
+    <p class="solvenote" id="exonote">Same greedy solver, but the whole desk is on the table.</p>
+    </div>
   </section>
 
 </aside>
@@ -373,6 +454,7 @@ footer.foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--hairline
       <p><strong>Regimes.</strong> Each path draws a persistent AI-market regime: boom / base / correction. Hazard multiplier <code>0.55 / 1.0 / 1.9</code>, re-let downtime <code>4 / 9 / 14 mo</code>, re-let rent spread <code>+15% / 0 / &minus;22%</code>, GPU resale <code>&times;1.15 / &times;1.0 / &times;0.6</code>. The outlook selector tilts regime probabilities.</p>
       <p><strong>Loss given default.</strong> Rent arrears (2&ndash;5&nbsp;mo) + vacancy downtime + PV of the re-let rent spread over the remaining term (8% discount) + re-leasing costs (commissions plus a 3%-of-capex fit-out refresh). Losses are capped at remaining lease value; boom paths can produce re-let <em>gains</em> &mdash; scarce powered shell is genuinely valuable.</p>
       <p><strong>Support stack.</strong> Applied in seniority order: deposit &rarr; LC (ratable burn-down) &rarr; GPU lien (30%/yr depreciation, 45% fire-sale haircut, second lien recovers 25%) &rarr; revenue assignment (counterparty survival &times; 35% collection realization) &rarr; sponsor guarantee (90% honor rate) &rarr; insurance (excess of all collateral, premium = modeled layer loss &times; 1.75).</p>
+      <p><strong>Exotic desk.</strong> Compute-indexed rent scales the correction-regime hazard down with participation and softens the re-let spread (the lease revenue covaries with the tenant&rsquo;s). The dark-shell put caps downtime at 3 months, floors the spread at &minus;15% and caps re-leasing costs. The binary swap pays its full notional on any default event (2.2&times; load); the cat bond pays actual loss up to principal only in correction-regime defaults (1.35&times; load + issuance); the mutual pool honors at 80% in corrections, 95% otherwise; the residual-value guarantee lifts the GPU haircut to 62% and removes the correction discount; warrants add expected income without touching the tail.</p>
       <p><strong>Metrics.</strong> Expected loss and CVaR&#8329;&#8325; (mean of the worst 5% of paths) on 6,000 seeded paths; identical draws across configurations, so comparisons are noise-free. The solver greedily adds the increment with the best tail-risk reduction per dollar of annual cost until CVaR&#8329;&#8325; clears tolerance.</p>
     </div>
   </details>
@@ -408,13 +490,18 @@ const STAGEN={seed:'Seed',A:'Series A',B:'Series B',C:'Series C',D:'Series D+',g
 const GRADEN={hyperscaler:'hyperscaler-grade',enterprise:'enterprise-grade',startup:'startup-grade'};
 function regProbs(o){return o>0?{boom:.40,base:.45,corr:.15}:o<0?{boom:.12,base:.43,corr:.45}:{boom:.25,base:.50,corr:.25};}
 
-const state={
+const DEFX={
+  x_cir:{on:false,p:25}, x_put:{on:false}, x_nds:{on:false,n:10},
+  x_cat:{on:false,n:15}, x_mut:{on:false,m:4}, x_rvs:{on:false}, x_war:{on:false,w:30}
+};
+const cloneJ=o=>JSON.parse(JSON.stringify(o));
+const state=Object.assign({
   stage:'B', runway:14, backlog:220, grade:'enterprise', conc:55,
   rent:18, term:7, capex:110, outlook:0,
   dep:{on:true,m:6}, lc:{on:true,m:8}, gpu:{on:true,v:180,p:'second'},
   rev:{on:false,s:50}, gty:{on:false,m:6}, ins:{on:false,c:15},
   tol:12, wfYear:2
-};
+},cloneJ(DEFX));
 
 const PRESETS={
   seriesb:{stage:'B',runway:14,backlog:220,grade:'enterprise',conc:55,rent:18,term:7,capex:110,outlook:0,
@@ -437,15 +524,20 @@ function hazards(st){
   return h;
 }
 
-function grossLoss(st,x,r,j){ /* x = default time (yrs), j = jitters in [0,1] */
+function grossLoss(st,x,r,j,useEx=true){ /* x = default time (yrs), j = jitters in [0,1] */
   const R=REG[r], m=st.rent/12, rem=st.term-x;
+  const put=useEx&&st.x_put.on;
   const arr=(2+3*j.arr)*m;
-  const dtM=Math.min(R.dt*(0.6+0.8*j.dt), rem*12);
+  let dtM=Math.min(R.dt*(0.6+0.8*j.dt), rem*12);
+  if(put)dtM=Math.min(dtM,3);
   const lost=dtM*m;
   const reletY=Math.max(0, rem-dtM/12);
-  const sp=R.s+(j.sp-0.5)*0.12;
+  let sp=R.s+(j.sp-0.5)*0.12;
+  if(useEx&&st.x_cir.on)sp*=(1-0.8*st.x_cir.p/100);
+  if(put)sp=Math.max(sp,-0.15);
   const spreadPV=-sp*st.rent*annuity(reletY);
-  const rc=reletY>0.1 ? R.rc*st.rent+0.03*st.capex : 0;
+  const rcRate=put?Math.min(R.rc,0.25):R.rc;
+  const rc=reletY>0.1 ? rcRate*st.rent+0.03*st.capex : 0;
   let g=arr+lost+spreadPV+rc;
   g=Math.min(g, arr+st.rent*rem);
   g=Math.max(g, -st.rent);
@@ -458,19 +550,27 @@ const LAYERS=[
   {k:'gpu',n:'GPU fleet lien',   v:'--l3'},
   {k:'rev',n:'Revenue assignment',v:'--l4'},
   {k:'gty',n:'Sponsor guarantee', v:'--l5'},
-  {k:'ins',n:'Default insurance', v:'--l6'}
+  {k:'ins',n:'Default insurance', v:'--l6'},
+  {k:'nds',n:'Binary default swap',v:'--x1'},
+  {k:'cat',n:'AI-winter cat bond', v:'--x2'},
+  {k:'mut',n:'Mutual pool',        v:'--x3'}
 ];
 function layerCaps(st,x,r){
   const m=st.rent/12, R=REG[r];
   const surv={hyperscaler:.85,enterprise:.55,startup:.25}[st.grade];
   const cy=Math.min(4,st.term);
+  const rvs=st.x_rvs.on&&st.gpu.on;
+  const gpuHc=rvs?0.62:0.45, gpuReg=rvs?Math.max(R.gpu,1):R.gpu;
   return {
     dep: st.dep.on? st.dep.m*m : 0,
     lc:  st.lc.on?  st.lc.m*m*Math.max(0,1-x/st.term) : 0,
-    gpu: st.gpu.on? st.gpu.v*Math.pow(0.70,x)*0.45*(st.gpu.p==='first'?1:0.25)*R.gpu : 0,
+    gpu: st.gpu.on? st.gpu.v*Math.pow(0.70,x)*gpuHc*(st.gpu.p==='first'?1:0.25)*gpuReg : 0,
     rev: st.rev.on? st.backlog*Math.max(0,1-x/cy)*(st.rev.s/100)*surv*0.35 : 0,
     gty: st.gty.on? st.gty.m*m*0.9 : 0,
-    ins: st.ins.on? (st.ins.c/100)*st.rent*st.term : 0
+    ins: st.ins.on? (st.ins.c/100)*st.rent*st.term : 0,
+    nds: st.x_nds.on? st.x_nds.n : 0,
+    cat: st.x_cat.on&&r==='corr'? st.x_cat.n : 0,
+    mut: st.x_mut.on? st.x_mut.m*m*(r==='corr'?0.8:0.95) : 0
   };
 }
 
@@ -480,40 +580,48 @@ const NPATH=6000;
 function buildScenarios(st){
   const rng=mulberry32(20260731);
   const h=hazards(st), pr=regProbs(st.outlook);
+  const cirF=st.x_cir.on? (1-0.45*st.x_cir.p/50) : 1;
   const rows=[];
   for(let i=0;i<NPATH;i++){
     const u=rng();
     const r=u<pr.boom?'boom':(u<pr.boom+pr.base?'base':'corr');
-    const mult=REG[r].h; let def=0;
+    const mult=REG[r].h*(r==='corr'?cirF:1); let def=0;
     for(let t=1;t<=st.term;t++){ if(rng()<clamp(h[t-1]*mult,0,0.6)){def=t;break;} }
     if(def){
-      const j={dt:rng(),sp:rng(),arr:rng(),gty:rng()};
-      rows.push({r,def,j,g:grossLoss(st,def-0.5,r,j)});
-    } else rows.push({r,def:0,j:null,g:0});
+      const j={dt:rng(),sp:rng(),arr:rng(),gty:rng(),mut:rng()};
+      rows.push({r,def,j});
+    } else rows.push({r,def:0,j:null});
   }
   SC={rows,h,pr};
 }
 
 /* ---- evaluate a hedge configuration on the shared scenario set ---- */
 function evalHedges(st){
-  const rows=SC.rows;
+  const rows=SC.rows, pr=SC.pr;
   const ul=new Array(rows.length), hl=new Array(rows.length);
-  let insPay=0, defs=0;
+  let insPay=0, catPay=0, ndsPay=0, defs=0;
+  const m=st.rent/12;
   for(let i=0;i<rows.length;i++){
     const row=rows[i];
     if(!row.def){ul[i]=0;hl[i]=0;continue;}
     defs++;
-    const g=row.g; ul[i]=g;
-    if(g<=0){hl[i]=g;continue;}
-    let rem=g;
-    const caps=layerCaps(st,row.def-0.5,row.r);
+    const x=row.def-0.5;
+    ul[i]=grossLoss(st,x,row.r,row.j,false);
+    const gH=grossLoss(st,x,row.r,row.j,true);
+    let rem=Math.max(0,gH);
+    const surplus=Math.min(0,gH);
+    const caps=layerCaps(st,x,row.r);
     for(const L of LAYERS){
+      let used;
+      if(L.k==='nds'){ used=caps.nds; rem-=used; ndsPay+=used; continue; } /* digital: pays face on the event */
       let c=caps[L.k];
-      if(L.k==='gty') c=(st.gty.on&&row.j.gty<0.9)? st.gty.m*(st.rent/12) : 0;
-      const used=Math.min(rem,c); rem-=used;
+      if(L.k==='gty') c=(st.gty.on&&row.j.gty<0.9)? st.gty.m*m : 0;
+      if(L.k==='mut') c=(st.x_mut.on&&row.j.mut<(row.r==='corr'?0.8:0.95))? st.x_mut.m*m : 0;
+      used=Math.max(0,Math.min(rem,c)); rem-=used;
       if(L.k==='ins') insPay+=used;
+      if(L.k==='cat') catPay+=used;
     }
-    hl[i]=rem;
+    hl[i]=rem+surplus;
   }
   const stats=a=>{
     const s=[...a].sort((x,y)=>x-y); const n=s.length;
@@ -523,18 +631,28 @@ function evalHedges(st){
     return {mean,cvar,ploss:a.filter(v=>v>0.25).length/n};
   };
   const su=stats(ul), sh=stats(hl);
-  const m=st.rent/12;
   const insPrem=st.ins.on? 1.75*(insPay/rows.length)/st.term : 0;
+  const ndsPrem=st.x_nds.on&&st.x_nds.n>0? 2.2*(ndsPay/rows.length)/st.term : 0;
+  const catPrem=st.x_cat.on&&st.x_cat.n>0? 1.35*(catPay/rows.length)/st.term+0.15 : 0;
+  const warInc=st.x_war.on&&st.x_war.w>0? -(st.x_war.w/100*st.rent)*(pr.boom*0.28+pr.base*0.10+pr.corr*0.01) : 0;
+  const cirCost=st.x_cir.on&&st.x_cir.p>0? st.x_cir.p/100*st.rent*(pr.corr*0.25-pr.boom*0.20) : 0;
   const costs=[
     st.dep.on&&st.dep.m>0?{n:'Deposit funding drag (tenant)',v:0.11*st.dep.m*m}:null,
     st.lc.on&&st.lc.m>0?{n:'LC fee ~2.25% of face (tenant)',v:0.0225*st.lc.m*m}:null,
     st.gpu.on?{n:'Lien filing & fleet monitoring',v:0.10}:null,
     st.rev.on?{n:'Assignment administration',v:0.05}:null,
     st.gty.on&&st.gty.m>0?{n:'Guarantee fee ~1.5% (sponsor)',v:0.015*st.gty.m*m}:null,
-    st.ins.on&&st.ins.c>0?{n:'Insurance premium (model-priced)',v:insPrem}:null
+    st.ins.on&&st.ins.c>0?{n:'Insurance premium (model-priced)',v:insPrem}:null,
+    st.x_cir.on&&st.x_cir.p>0?{n:cirCost>=0?'CIR expected rent give-up':'CIR expected rent pickup',v:cirCost}:null,
+    st.x_put.on?{n:'Dark-shell put fee ~1.5% of rent',v:0.015*st.rent}:null,
+    st.x_nds.on&&st.x_nds.n>0?{n:'Binary swap spread (2.2× load)',v:ndsPrem}:null,
+    st.x_cat.on&&st.x_cat.n>0?{n:'Cat-bond coupon + issuance',v:catPrem}:null,
+    st.x_mut.on&&st.x_mut.m>0?{n:'Mutual pool contribution',v:0.022*st.x_mut.m*m}:null,
+    st.x_rvs.on&&st.gpu.on?{n:'Residual-value guarantee fee',v:0.008*st.gpu.v}:null,
+    st.x_war.on&&st.x_war.w>0?{n:'Warrant income (expected)',v:warInc}:null
   ].filter(Boolean);
   const cost=costs.reduce((p,c)=>p+c.v,0);
-  return {su,sh,ul,hl,pdef:defs/rows.length,cost,costs,insPrem};
+  return {su,sh,ul,hl,pdef:defs/rows.length,cost,costs,insPrem,ndsPrem,catPrem,warInc,cirCost};
 }
 
 /* ================= charts ================= */
@@ -568,6 +686,7 @@ function renderA(st){
   for(let t=1;t<=T;t++){
     const x=t-0.5;
     const caps=layerCaps(st,x,'base');
+    caps.cat=st.x_cat.on? st.x_cat.n : 0; /* corr-trigger capacity, shown against the stress line */
     const exp_=pr.boom*grossLoss(st,x,'boom',jm)+pr.base*grossLoss(st,x,'base',jm)+pr.corr*grossLoss(st,x,'corr',jm);
     const stress=grossLoss(st,x,'corr',jm);
     yrs.push({t,caps,exp:Math.max(0,exp_),stress:Math.max(0,stress)});
@@ -688,7 +807,8 @@ function renderC(st,M){
   SC.rows.forEach((r,i)=>{if(r.def){u.push(M.ul[i]);hh.push(M.hl[i]);}});
   if(!u.length){$('#chartC').innerHTML='';return;}
   const us=[...u].sort((a,b)=>a-b);
-  const lo=Math.min(0,us[0]), hi=us[Math.floor(us.length*0.99)]*1.02||1;
+  const hmin=hh.reduce((p,c)=>Math.min(p,c),0);
+  const lo=Math.min(0,us[0],hmin), hi=us[Math.floor(us.length*0.99)]*1.02||1;
   const NB=16,bwv=(hi-lo)/NB;
   const bu=new Array(NB).fill(0), bh=new Array(NB).fill(0);
   const binOf=v=>clamp(Math.floor((v-lo)/bwv),0,NB-1);
@@ -798,23 +918,25 @@ function renderD(st){
 /* ---- E: frontier ---- */
 function packageConfigs(st){
   const c=o=>JSON.parse(JSON.stringify(Object.assign({},st,o)));
-  const off={dep:{on:false,m:0},lc:{on:false,m:0},gpu:{on:false,v:st.gpu.v,p:st.gpu.p},rev:{on:false,s:50},gty:{on:false,m:6},ins:{on:false,c:15}};
+  const off=Object.assign({dep:{on:false,m:0},lc:{on:false,m:0},gpu:{on:false,v:st.gpu.v,p:st.gpu.p},rev:{on:false,s:50},gty:{on:false,m:6},ins:{on:false,c:15}},cloneJ(DEFX));
   return [
     {n:'Nothing',cfg:c(off)},
     {n:'Deposit 6mo',cfg:c(Object.assign({},off,{dep:{on:true,m:6}}))},
     {n:'Dep + LC',cfg:c(Object.assign({},off,{dep:{on:true,m:6},lc:{on:true,m:8}}))},
     {n:'Dep + LC + GPU',cfg:c(Object.assign({},off,{dep:{on:true,m:6},lc:{on:true,m:8},gpu:{on:true,v:st.gpu.v,p:st.gpu.p}}))},
     {n:'Insurance-led',cfg:c(Object.assign({},off,{dep:{on:true,m:4},ins:{on:true,c:20}}))},
-    {n:'Full stack',cfg:c(Object.assign({},off,{dep:{on:true,m:6},lc:{on:true,m:8},gpu:{on:true,v:st.gpu.v,p:st.gpu.p},rev:{on:true,s:50},ins:{on:true,c:15}}))}
+    {n:'Full stack',cfg:c(Object.assign({},off,{dep:{on:true,m:6},lc:{on:true,m:8},gpu:{on:true,v:st.gpu.v,p:st.gpu.p},rev:{on:true,s:50},ins:{on:true,c:15}}))},
+    {n:'Exotic mix',cfg:c(Object.assign({},off,{dep:{on:true,m:6},x_put:{on:true},x_cat:{on:true,n:15},x_nds:{on:true,n:10}}))}
   ];
 }
 function renderE(st,M){
   const pk=packageConfigs(st).map(p=>{const r=evalHedges(p.cfg);return {n:p.n,cost:r.cost/st.rent*100,cvar:r.sh.cvar};});
   const cur={n:'Current stack',cost:M.cost/st.rent*100,cvar:M.sh.cvar};
   const all=[...pk,cur];
+  const minX=Math.min(0,...all.map(p=>p.cost));
   const maxX=Math.max(...all.map(p=>p.cost),1)*1.2, maxY=Math.max(...all.map(p=>p.cvar),1)*1.15;
   const W=430,H=270,pl=46,prt=16,pt=16,pb=44,pw=W-pl-prt,ph=H-pt-pb;
-  const X=v=>pl+v/maxX*pw, Y=v=>pt+ph-(v/maxY)*ph;
+  const X=v=>pl+(v-minX)/(maxX-minX)*pw, Y=v=>pt+ph-(v/maxY)*ph;
   let s='';
   ticks(maxY,3).forEach(v=>{s+=`<line x1="${pl}" x2="${pl+pw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end" font-size="10.5" fill="var(--muted)">$${Math.round(v)}M</text>`;});
   const tolM=st.tol*st.rent/12;
@@ -861,7 +983,7 @@ function renderVerdict(st,M){
     ? `Residual tail loss ${fM(M.sh.cvar)} sits inside the landlord's ${fM(tolM)} tolerance — the stack de-risks the lease enough to sign.`
     : vd.t==='warn'
     ? `Residual tail loss ${fM(M.sh.cvar)} is within 30% of tolerance — one more instrument or tighter sizing closes it.`
-    : `Residual tail loss ${fM(M.sh.cvar)} exceeds the ${fM(tolM)} tolerance — as structured, a rational landlord walks.`;
+    : `Residual tail loss ${fM(M.sh.cvar)} exceeds the ${fM(tolM)} tolerance — as structured, a rational landlord walks. If the standard stack is maxed, open the exotic desk.`;
   const fill=$('#vfill');
   const pct=clamp(M.sh.cvar/tolM,0,2)/2*100;
   fill.style.width=Math.max(2,pct)+'%';
@@ -890,6 +1012,13 @@ function renderCosts(st,M){
   put('#rev_cost',st.rev.on?fM2(0.05)+'/yr':'—');
   put('#gty_cost',st.gty.on&&st.gty.m>0?fM2(0.015*st.gty.m*m)+'/yr fee':'—');
   put('#ins_cost',st.ins.on&&st.ins.c>0?fM2(M.insPrem)+'/yr prem':'—');
+  put('#x_cir_cost',st.x_cir.on&&st.x_cir.p>0?fM2(M.cirCost)+'/yr '+(M.cirCost>=0?'give-up':'pickup'):'—');
+  put('#x_put_cost',st.x_put.on?fM2(0.015*st.rent)+'/yr fee':'—');
+  put('#x_nds_cost',st.x_nds.on&&st.x_nds.n>0?fM2(M.ndsPrem)+'/yr sprd':'—');
+  put('#x_cat_cost',st.x_cat.on&&st.x_cat.n>0?fM2(M.catPrem)+'/yr cpn':'—');
+  put('#x_mut_cost',st.x_mut.on&&st.x_mut.m>0?fM2(0.022*st.x_mut.m*m)+'/yr contrib':'—');
+  put('#x_rvs_cost',st.x_rvs.on&&st.gpu.on?fM2(0.008*st.gpu.v)+'/yr fee':'—');
+  put('#x_war_cost',st.x_war.on&&st.x_war.w>0?fM2(-M.warInc)+'/yr income':'—');
 }
 function termSheet(st,M){
   const m=st.rent/12, tolM=st.tol*st.rent/12, vd=verdictOf(st,M);
@@ -913,7 +1042,16 @@ function termSheet(st,M){
   if(st.rev.on&&st.rev.s>0)L.push(pad(`${++n}. Revenue assignment`,`${st.rev.s}% of contracted backlog assigns on default`));
   if(st.gty.on&&st.gty.m>0)L.push(pad(`${++n}. Sponsor guarantee`,`${st.gty.m} mo rent (${fM(st.gty.m*m)})`));
   if(st.ins.on&&st.ins.c>0)L.push(pad(`${++n}. Default insurance`,`limit ${fM(st.ins.c/100*st.rent*st.term)} (${st.ins.c}% of total rent), excess of collateral`));
+  if(st.x_nds.on&&st.x_nds.n>0)L.push(pad(`${++n}. Binary default swap`,`${fM(st.x_nds.n)} digital notional, pays on default event (2.2× load)`));
+  if(st.x_cat.on&&st.x_cat.n>0)L.push(pad(`${++n}. AI-winter cat bond`,`principal ${fM(st.x_cat.n)}, dual trigger: default × correction`));
+  if(st.x_mut.on&&st.x_mut.m>0)L.push(pad(`${++n}. Mutual pool cover`,`${st.x_mut.m} mo rent, consortium-backed (80% honor in correction)`));
   if(n===0)L.push('  (none — lease is unsupported)');
+  const lease=[];
+  if(st.x_cir.on&&st.x_cir.p>0)lease.push(pad('  Compute-indexed rent',`${st.x_cir.p}% participation in GPU spot index`));
+  if(st.x_put.on)lease.push(pad('  Dark-shell put',`counterparty backfills at 85% of rent within 90 days`));
+  if(st.x_rvs.on&&st.gpu.on)lease.push(pad('  GPU residual guarantee',`OEM resale floor uplifts lien recovery to 62%`));
+  if(st.x_war.on&&st.x_war.w>0)lease.push(pad('  Warrant coverage',`${st.x_war.w}% of annual rent notional (risk compensation, not reduction)`));
+  if(lease.length){L.push('');L.push('LEASE-DESIGN & SIDE INSTRUMENTS');L.push(...lease);}
   L.push('');
   L.push(pad('Residual EL / CVaR95',`${fM(M.sh.mean)} / ${fM(M.sh.cvar)}`));
   L.push(pad('Landlord tolerance',`${fM(tolM)} CVaR95 (${st.tol} mo rent)`));
@@ -931,67 +1069,98 @@ function termSheet(st,M){
 }
 
 /* ================= auto-structure ================= */
-function autoStructure(){
+function autoStructure(allowExotics){
   const tolM=state.tol*state.rent/12;
-  const clone=s=>JSON.parse(JSON.stringify(s));
-  let cur=clone(state);
+  let cur=cloneJ(state);
   let best=evalHedges(cur);
-  const btn=$('#autobtn');btn.disabled=true;
+  const btn=allowExotics?$('#exobtn'):$('#autobtn');btn.disabled=true;
   let iters=0;
-  while(best.sh.cvar>tolM&&iters<48){
+  while(best.sh.cvar>tolM&&iters<64){
     iters++;
     const cands=[];
-    const push=(mut,desc)=>{const c=clone(cur);mut(c);cands.push({c,desc});};
-    if(cur.dep.m<12)push(c=>{c.dep.on=true;c.dep.m=Math.min(12,c.dep.m+2);},'dep');
-    if(cur.lc.m<12)push(c=>{c.lc.on=true;c.lc.m=Math.min(12,c.lc.m+2);},'lc');
-    if(!cur.gpu.on&&cur.gpu.v>0)push(c=>{c.gpu.on=true;},'gpu');
-    if(!cur.rev.on&&cur.backlog>0)push(c=>{c.rev.on=true;c.rev.s=50;},'rev');
-    else if(cur.rev.on&&cur.rev.s<100)push(c=>{c.rev.s=Math.min(100,c.rev.s+25);},'rev+');
-    if(!cur.ins.on)push(c=>{c.ins.on=true;c.ins.c=Math.max(5,c.ins.c?Math.min(c.ins.c,5):5);c.ins.c=5;},'ins');
-    else if(cur.ins.c<40)push(c=>{c.ins.c=Math.min(40,c.ins.c+5);},'ins+');
-    if(!cur.gty.on)push(c=>{c.gty.on=true;c.gty.m=3;},'gty');
-    else if(cur.gty.m<12)push(c=>{c.gty.m=Math.min(12,c.gty.m+3);},'gty+');
+    const push=mut=>{const c=cloneJ(cur);mut(c);cands.push(c);};
+    if(cur.dep.m<12)push(c=>{c.dep.on=true;c.dep.m=Math.min(12,c.dep.m+2);});
+    if(cur.lc.m<12)push(c=>{c.lc.on=true;c.lc.m=Math.min(12,c.lc.m+2);});
+    if(!cur.gpu.on&&cur.gpu.v>0)push(c=>{c.gpu.on=true;});
+    if(!cur.rev.on&&cur.backlog>0)push(c=>{c.rev.on=true;c.rev.s=50;});
+    else if(cur.rev.on&&cur.rev.s<100)push(c=>{c.rev.s=Math.min(100,c.rev.s+25);});
+    if(!cur.ins.on)push(c=>{c.ins.on=true;c.ins.c=5;});
+    else if(cur.ins.c<40)push(c=>{c.ins.c=Math.min(40,c.ins.c+5);});
+    if(!cur.gty.on)push(c=>{c.gty.on=true;c.gty.m=3;});
+    else if(cur.gty.m<12)push(c=>{c.gty.m=Math.min(12,c.gty.m+3);});
+    if(allowExotics){
+      if(!cur.x_put.on)push(c=>{c.x_put.on=true;});
+      if(!cur.x_nds.on)push(c=>{c.x_nds.on=true;c.x_nds.n=10;});
+      else if(cur.x_nds.n<40)push(c=>{c.x_nds.n=Math.min(40,c.x_nds.n+10);});
+      if(!cur.x_cat.on)push(c=>{c.x_cat.on=true;c.x_cat.n=10;});
+      else if(cur.x_cat.n<40)push(c=>{c.x_cat.n=Math.min(40,c.x_cat.n+10);});
+      if(!cur.x_mut.on)push(c=>{c.x_mut.on=true;c.x_mut.m=2;});
+      else if(cur.x_mut.m<8)push(c=>{c.x_mut.m=Math.min(8,c.x_mut.m+2);});
+      if(cur.gpu.on&&!cur.x_rvs.on)push(c=>{c.x_rvs.on=true;});
+    }
     if(!cands.length)break;
     let bestC=null,bestScore=-1;
-    for(const cd of cands){
-      const r=evalHedges(cd.c);
+    for(const c of cands){
+      const r=evalHedges(c);
       const dRisk=best.sh.cvar-r.sh.cvar;
       if(dRisk<=0.03)continue;
       const dCost=Math.max(r.cost-best.cost,0.01);
       const score=dRisk/dCost;
-      if(score>bestScore){bestScore=score;bestC={cd,r};}
+      if(score>bestScore){bestScore=score;bestC={c,r};}
     }
     if(!bestC)break;
-    cur=bestC.cd.c;best=bestC.r;
+    cur=bestC.c;best=bestC.r;
   }
-  Object.assign(state,{dep:cur.dep,lc:cur.lc,gpu:cur.gpu,rev:cur.rev,gty:cur.gty,ins:cur.ins});
+  ['dep','lc','gpu','rev','gty','ins','x_cir','x_put','x_nds','x_cat','x_mut','x_rvs','x_war']
+    .forEach(k=>state[k]=cur[k]);
   syncControls();
   update(false);
-  const note=$('#solvenote');
+  const note=allowExotics?$('#exonote'):$('#solvenote');
   note.textContent=best.sh.cvar<=tolM
-    ? `Solved in ${iters} steps: residual CVaR₉₅ ${fM(best.sh.cvar)} ≤ tolerance ${fM(tolM)} at ${fM2(best.cost)}/yr.`
-    : `Every instrument maxed — residual CVaR₉₅ ${fM(best.sh.cvar)} still exceeds ${fM(tolM)}. Raise tolerance, shorten term, or walk.`;
+    ? `Solved in ${iters} steps: residual CVaR₉₅ ${fM(best.sh.cvar)} ≤ tolerance ${fM(tolM)} at ${fM2(best.cost)}/yr net.`
+    : allowExotics
+    ? `Even the exotic desk tops out — residual CVaR₉₅ ${fM(best.sh.cvar)} vs ${fM(tolM)}. Raise tolerance, shorten term, or walk.`
+    : `Every standard instrument maxed — residual CVaR₉₅ ${fM(best.sh.cvar)} still exceeds ${fM(tolM)}. Try the exotic desk.`;
   btn.disabled=false;
 }
 
 /* ================= wiring ================= */
 const BIND=[
-  ['stage',v=>state.stage=v,null,true],
-  ['runway',v=>state.runway=+v,v=>v+' mo',true],
-  ['backlog',v=>state.backlog=+v,v=>'$'+v+'M',true],
-  ['grade',v=>state.grade=v,null,true],
-  ['conc',v=>state.conc=+v,v=>v+'%',true],
-  ['rent',v=>state.rent=+v,v=>'$'+v+'M/yr',true],
-  ['term',v=>state.term=+v,v=>v+' yrs',true],
-  ['capex',v=>state.capex=+v,v=>'$'+v+'M',true],
-  ['outlook',v=>state.outlook=+v,null,true],
-  ['dep_on',v=>state.dep.on=v,null,false],['dep_m',v=>state.dep.m=+v,v=>v+' mo rent',false],
-  ['lc_on',v=>state.lc.on=v,null,false],['lc_m',v=>state.lc.m=+v,v=>v+' mo rent',false],
-  ['gpu_on',v=>state.gpu.on=v,null,false],['gpu_v',v=>state.gpu.v=+v,v=>'$'+v+'M',false],['gpu_p',v=>state.gpu.p=v,null,false],
-  ['rev_on',v=>state.rev.on=v,null,false],['rev_s',v=>state.rev.s=+v,v=>v+'%',false],
-  ['gty_on',v=>state.gty.on=v,null,false],['gty_m',v=>state.gty.m=+v,v=>v+' mo rent',false],
-  ['ins_on',v=>state.ins.on=v,null,false],['ins_c',v=>state.ins.c=+v,v=>v+'% of total rent',false],
-  ['tol',v=>state.tol=+v,v=>v+' mo rent',false]
+  {id:'stage',get:()=>state.stage,set:v=>state.stage=v,rebuild:true},
+  {id:'runway',get:()=>state.runway,set:v=>state.runway=+v,fmt:v=>v+' mo',rebuild:true},
+  {id:'backlog',get:()=>state.backlog,set:v=>state.backlog=+v,fmt:v=>'$'+v+'M',rebuild:true},
+  {id:'grade',get:()=>state.grade,set:v=>state.grade=v,rebuild:true},
+  {id:'conc',get:()=>state.conc,set:v=>state.conc=+v,fmt:v=>v+'%',rebuild:true},
+  {id:'rent',get:()=>state.rent,set:v=>state.rent=+v,fmt:v=>'$'+v+'M/yr',rebuild:true},
+  {id:'term',get:()=>state.term,set:v=>state.term=+v,fmt:v=>v+' yrs',rebuild:true},
+  {id:'capex',get:()=>state.capex,set:v=>state.capex=+v,fmt:v=>'$'+v+'M',rebuild:true},
+  {id:'outlook',get:()=>state.outlook,set:v=>state.outlook=+v,rebuild:true},
+  {id:'dep_on',get:()=>state.dep.on,set:v=>state.dep.on=v},
+  {id:'dep_m',get:()=>state.dep.m,set:v=>state.dep.m=+v,fmt:v=>v+' mo rent'},
+  {id:'lc_on',get:()=>state.lc.on,set:v=>state.lc.on=v},
+  {id:'lc_m',get:()=>state.lc.m,set:v=>state.lc.m=+v,fmt:v=>v+' mo rent'},
+  {id:'gpu_on',get:()=>state.gpu.on,set:v=>state.gpu.on=v},
+  {id:'gpu_v',get:()=>state.gpu.v,set:v=>state.gpu.v=+v,fmt:v=>'$'+v+'M'},
+  {id:'gpu_p',get:()=>state.gpu.p,set:v=>state.gpu.p=v},
+  {id:'rev_on',get:()=>state.rev.on,set:v=>state.rev.on=v},
+  {id:'rev_s',get:()=>state.rev.s,set:v=>state.rev.s=+v,fmt:v=>v+'%'},
+  {id:'gty_on',get:()=>state.gty.on,set:v=>state.gty.on=v},
+  {id:'gty_m',get:()=>state.gty.m,set:v=>state.gty.m=+v,fmt:v=>v+' mo rent'},
+  {id:'ins_on',get:()=>state.ins.on,set:v=>state.ins.on=v},
+  {id:'ins_c',get:()=>state.ins.c,set:v=>state.ins.c=+v,fmt:v=>v+'% of total rent'},
+  {id:'x_cir_on',get:()=>state.x_cir.on,set:v=>state.x_cir.on=v,rebuild:true},
+  {id:'x_cir_p',get:()=>state.x_cir.p,set:v=>state.x_cir.p=+v,fmt:v=>v+'% of rent floats',rebuild:true},
+  {id:'x_put_on',get:()=>state.x_put.on,set:v=>state.x_put.on=v},
+  {id:'x_nds_on',get:()=>state.x_nds.on,set:v=>state.x_nds.on=v},
+  {id:'x_nds_n',get:()=>state.x_nds.n,set:v=>state.x_nds.n=+v,fmt:v=>'$'+v+'M digital'},
+  {id:'x_cat_on',get:()=>state.x_cat.on,set:v=>state.x_cat.on=v},
+  {id:'x_cat_n',get:()=>state.x_cat.n,set:v=>state.x_cat.n=+v,fmt:v=>'$'+v+'M principal'},
+  {id:'x_mut_on',get:()=>state.x_mut.on,set:v=>state.x_mut.on=v},
+  {id:'x_mut_m',get:()=>state.x_mut.m,set:v=>state.x_mut.m=+v,fmt:v=>v+' mo rent'},
+  {id:'x_rvs_on',get:()=>state.x_rvs.on,set:v=>state.x_rvs.on=v},
+  {id:'x_war_on',get:()=>state.x_war.on,set:v=>state.x_war.on=v},
+  {id:'x_war_w',get:()=>state.x_war.w,set:v=>state.x_war.w=+v,fmt:v=>v+'% of annual rent'},
+  {id:'tol',get:()=>state.tol,set:v=>state.tol=+v,fmt:v=>v+' mo rent'}
 ];
 let pending=null;
 function update(rebuild){
@@ -1007,46 +1176,48 @@ function scheduleUpdate(rebuild){
   pending=requestAnimationFrame(()=>{pending=null;update(rebuild);});
 }
 function syncControls(){
-  BIND.forEach(([id,,fmt])=>{
-    const el=document.getElementById(id);if(!el)return;
-    const path=id.split('_');
-    let v;
-    if(path.length===1||id==='gpu_v'||id==='gpu_p'){
-      v=id==='gpu_v'?state.gpu.v:id==='gpu_p'?state.gpu.p:state[id];
-    } else {
-      const [k,f]=path;
-      v=f==='on'?state[k].on:state[k][f==='m'?'m':f==='s'?'s':f==='c'?'c':f];
-    }
+  BIND.forEach(b=>{
+    const el=document.getElementById(b.id);if(!el)return;
+    const v=b.get();
     if(el.type==='checkbox')el.checked=!!v;else el.value=v;
-    const out=document.getElementById(id+'_v');
-    if(out&&fmt)out.textContent=fmt(v);
+    const out=document.getElementById(b.id+'_v');
+    if(out&&b.fmt)out.textContent=b.fmt(v);
   });
   document.querySelectorAll('.inst').forEach(d=>{
-    const k=d.dataset.k;
-    d.classList.toggle('off',!state[k].on);
+    const o=state[d.dataset.k];
+    if(o&&typeof o.on==='boolean')d.classList.toggle('off',!o.on);
   });
 }
-BIND.forEach(([id,set,fmt,rebuild])=>{
-  const el=document.getElementById(id);if(!el)return;
+BIND.forEach(b=>{
+  const el=document.getElementById(b.id);if(!el)return;
   el.addEventListener('input',()=>{
     const v=el.type==='checkbox'?el.checked:el.value;
-    set(v);
-    const out=document.getElementById(id+'_v');
-    if(out&&fmt)out.textContent=fmt(v);
+    b.set(v);
+    const out=document.getElementById(b.id+'_v');
+    if(out&&b.fmt)out.textContent=b.fmt(v);
     if(el.type==='checkbox'){
       const inst=el.closest('.inst');
       if(inst)inst.classList.toggle('off',!el.checked);
     }
-    scheduleUpdate(rebuild);
+    scheduleUpdate(!!b.rebuild);
   });
 });
-$('#autobtn').addEventListener('click',autoStructure);
+$('#autobtn').addEventListener('click',()=>autoStructure(false));
+$('#exobtn').addEventListener('click',()=>autoStructure(true));
+[['std','#tab_std'],['exo','#tab_exo']].forEach(([k,sel])=>{
+  document.getElementById('tabbtn_'+k).addEventListener('click',()=>{
+    ['std','exo'].forEach(kk=>{
+      document.getElementById('tabbtn_'+kk).setAttribute('aria-pressed',String(kk===k));
+      $(kk==='std'?'#tab_std':'#tab_exo').classList.toggle('hidden',kk!==k);
+    });
+  });
+});
 document.querySelectorAll('#presets .chip').forEach(ch=>{
   ch.addEventListener('click',()=>{
     document.querySelectorAll('#presets .chip').forEach(c=>c.setAttribute('aria-pressed','false'));
     ch.setAttribute('aria-pressed','true');
-    const p=JSON.parse(JSON.stringify(PRESETS[ch.dataset.preset]));
-    Object.assign(state,p);state.wfYear=2;
+    Object.assign(state,cloneJ(DEFX),cloneJ(PRESETS[ch.dataset.preset]));
+    state.wfYear=2;
     syncControls();update(true);
   });
 });
