@@ -62,6 +62,39 @@ h1.wordmark{font-size:34px;font-weight:700;letter-spacing:-.02em}
 .tbtn{background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:7px 12px;font:500 12.5px var(--mono);color:var(--ink2);white-space:nowrap}
 .tbtn:hover{border-color:var(--axis)}
 
+/* ---------- view switcher ---------- */
+.views{display:flex;gap:8px;margin:0 0 18px}
+.vbtn{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:9px 18px;font:600 13px var(--mono);color:var(--ink2);letter-spacing:.02em}
+.vbtn:hover{border-color:var(--axis)}
+.vbtn[aria-pressed="true"]{background:var(--accent-wash);border-color:var(--accent);color:var(--accent-deep)}
+
+/* ---------- market-engineering view ---------- */
+#view_build{display:flex;flex-direction:column;gap:14px}
+.lead .mbody{font-size:13.5px;color:var(--ink2);max-width:92ch}
+.lead .mbody p{margin:7px 0}
+.lead .mbody strong{color:var(--ink)}
+.livestat{margin:12px 0 0;padding-top:10px;border-top:1px solid var(--hairline);font:600 12.5px var(--mono);color:var(--accent-deep)}
+.bistack{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.bistat{display:flex;gap:22px;flex-wrap:wrap;margin:2px 0 12px}
+.bistat .bs .bl{font-size:11.5px;color:var(--muted)}
+.bistat .bs .bv{font:650 15px var(--sans);color:var(--ink)}
+.readybar{height:8px;border-radius:4px;background:var(--grid);width:120px;margin-top:5px;overflow:hidden}
+.readybar .rf{height:100%;border-radius:4px;background:var(--accent)}
+.comp{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--hairline)}
+.comp:first-of-type{border-top:none}
+.cstat{flex:none;font:700 9.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:2.5px 9px;margin-top:1px;border:1px solid}
+.cstat-e{color:var(--good-text);border-color:var(--good)}
+.cstat-m{color:var(--ink2);border-color:var(--warn)}
+.cstat-b{color:var(--ink2);border-color:var(--serious)}
+.comp .cn{font-size:13px;font-weight:600}
+.comp .cnote{font-size:12px;color:var(--muted)}
+.whyhard{margin:10px 0 0;padding:9px 12px;border-left:3px solid var(--serious);background:var(--accent-wash);border-radius:0 8px 8px 0;font-size:12.5px;color:var(--ink2)}
+#bi_diagram svg{display:block;width:100%;height:auto}
+#bi_diagram text{font-family:var(--sans)}
+.dgleg{display:flex;gap:14px;font-size:11.5px;color:var(--muted);margin-top:4px;flex-wrap:wrap}
+.dgleg .li{display:inline-flex;align-items:center;gap:6px}
+.dgleg .sw{width:11px;height:11px;border-radius:3px;border:2px solid;flex:none}
+
 /* ---------- preset chips ---------- */
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
 .chip{background:var(--surface);border:1px solid var(--hairline);border-radius:999px;padding:6px 14px;font:500 12.5px var(--mono);color:var(--ink2)}
@@ -207,6 +240,12 @@ footer.foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--hairline
   <button class="tbtn" id="themebtn" aria-label="Toggle color theme">theme: auto</button>
 </header>
 
+<div class="views">
+  <button class="vbtn" id="vbtn_desk" aria-pressed="true">Structuring desk</button>
+  <button class="vbtn" id="vbtn_build" aria-pressed="false">Market engineering &mdash; make it possible</button>
+</div>
+
+<div id="view_desk">
 <div class="chips" id="presets">
   <span class="chiplbl">Load a tenant</span>
   <button class="chip" data-preset="seriesb" aria-pressed="true">Series B NeoCloud</button>
@@ -462,7 +501,60 @@ footer.foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--hairline
   <footer class="foot">Backstop is a negotiation-support model: every number above is driven by the stated assumptions, not market quotes. It is not investment, insurance, or legal advice &mdash; use it to frame the conversation between landlord, tenant, brokers and insurers.</footer>
 </section>
 </main>
-</div>
+</div><!-- /view_desk -->
+
+<div id="view_build" class="hidden">
+
+  <section class="card lead">
+    <h2>Why this market has to be built</h2>
+    <div class="mbody">
+      <p><strong>1 &middot; Bankruptcy makes lease credit uniquely bad.</strong> In a US tenant bankruptcy, the landlord&rsquo;s damage claim is capped by &sect;502(b)(6) &mdash; roughly the greater of one year&rsquo;s rent or 15% of the remaining term, never more than three years. Most of a 7-year exposure is legally unrecoverable <em>from the estate</em>. That is why every instrument on the desk is engineered to sit <strong>outside</strong> the estate: escrowed deposits, letters of credit, third-party paper, SPV trusts.</p>
+      <p><strong>2 &middot; The risk is wrong-way.</strong> A NeoCloud tenant defaults in exactly the state of the world where re-letting is hardest &mdash; an AI correction. Nobody inside the sector can diversify that. The job is to move the tail to balance sheets with opposite or uncorrelated exposure: insurers and ILS investors, GPU OEMs, hyperscalers who want the capacity anyway, and AI bulls happy to be paid to bet against the winter.</p>
+      <p><strong>3 &middot; The plumbing is missing, not the appetite.</strong> There is no published compute-price benchmark, no standard default-event definitions, no loss dataset, no consortium. Each instrument below is decomposed into the market infrastructure it actually needs &mdash; what exists today, what is emerging, and what someone has to build first.</p>
+    </div>
+    <p class="livestat" id="buildstat"></p>
+  </section>
+
+  <div class="chips" id="bi_chips"><span class="chiplbl">Instrument</span></div>
+
+  <div class="bistack">
+    <figure class="card">
+      <figcaption><div class="chead"><div><div class="ctitle" id="bi_dtitle">Deal structure</div>
+        <div class="csub">Who signs what, and which way the money and the risk flow.</div></div></div></figcaption>
+      <div id="bi_diagram"></div>
+      <div class="dgleg">
+        <span class="li"><span class="sw" style="border-color:var(--accent)"></span>landlord side</span>
+        <span class="li"><span class="sw" style="border-color:var(--x2)"></span>takes the risk</span>
+        <span class="li"><span class="sw" style="border-color:var(--axis)"></span>infrastructure</span>
+      </div>
+    </figure>
+    <section class="card" id="bi_panel">
+      <h2>What has to exist</h2>
+      <div class="bistat" id="bi_stats"></div>
+      <div id="bi_comps"></div>
+      <div class="whyhard" id="bi_hard"></div>
+    </section>
+  </div>
+
+  <figure class="card" id="cardF">
+    <figcaption><div class="chead"><div><div class="ctitle">What to build first</div>
+      <div class="csub">Tail-risk transfer power (computed live: CVaR&#8329;&#8325; cut by each instrument alone, at reference size, for the tenant on the desk) against months to stand the market up. Up and left is the quick win.</div></div>
+      <button class="tblbtn" data-for="F" aria-pressed="false">table</button></div></figcaption>
+    <div class="cbody" id="chartF"></div>
+    <div class="ctable hidden" id="tableF"></div>
+  </figure>
+
+  <figure class="card" id="cardG">
+      <figcaption><div class="chead"><div><div class="ctitle">Market build-out roadmap</div>
+        <div class="csub">Ten quarters from nothing to a functioning NeoCloud lease-risk market.</div></div>
+        <button class="tblbtn" data-for="G" aria-pressed="false">table</button></div>
+        <div class="legend" id="legG"></div></figcaption>
+      <div class="cbody" id="chartG"></div>
+      <div class="ctable hidden" id="tableG"></div>
+    </figure>
+
+  <footer class="foot">Statuses, timelines and leaders are structuring judgments, not facts &mdash; the point is to make the build-out arguable line by line. Transfer power is model output from the same 6,000 paths as the desk.</footer>
+</div><!-- /view_build -->
 <div id="tip" role="status"></div>
 
 <script>
@@ -577,7 +669,7 @@ function layerCaps(st,x,r){
 /* ---- scenario set (depends on tenant/lease/market only) ---- */
 let SC=null;
 const NPATH=6000;
-function buildScenarios(st){
+function makeScenarios(st){
   const rng=mulberry32(20260731);
   const h=hazards(st), pr=regProbs(st.outlook);
   const cirF=st.x_cir.on? (1-0.45*st.x_cir.p/50) : 1;
@@ -592,12 +684,14 @@ function buildScenarios(st){
       rows.push({r,def,j});
     } else rows.push({r,def:0,j:null});
   }
-  SC={rows,h,pr};
+  return {rows,h,pr};
 }
+function buildScenarios(st){SC=makeScenarios(st);}
 
 /* ---- evaluate a hedge configuration on the shared scenario set ---- */
-function evalHedges(st){
-  const rows=SC.rows, pr=SC.pr;
+function evalHedges(st,sc){
+  sc=sc||SC;
+  const rows=sc.rows, pr=sc.pr;
   const ul=new Array(rows.length), hl=new Array(rows.length);
   let insPay=0, catPay=0, ndsPay=0, defs=0;
   const m=st.rent/12;
@@ -1124,6 +1218,285 @@ function autoStructure(allowExotics){
   btn.disabled=false;
 }
 
+/* ================= market engineering ================= */
+/* status: e = exists, m = emerging, b = to build */
+const BUILD={
+  x_cir:{name:'Compute-indexed rent',tick:'CIR',months:30,leader:'Exchange + data consortium',
+    hard:'A benchmark nobody administers yet, contributed by competitors, blessed by lenders — the index is the product; the lease rider is the easy part.',
+    cfg:{x_cir:{on:true,p:25}},
+    comps:[
+      ['m','Published GPU compute-price index','Spot rental prices exist via brokers and marketplaces; nobody publishes a manipulation-resistant benchmark.'],
+      ['b','IOSCO-compliant administrator','Benchmark regulation applies the moment real money references the fixings.'],
+      ['b','Contributor data agreements','Competing NeoClouds must submit transaction data — the cartel problem every young benchmark has.'],
+      ['b','Lease rider + lender consent forms','Floating rent breaks standard mortgage covenants; lenders need a template they can underwrite.'],
+      ['b','Index futures for laying off exposure','Without a hedge venue the landlord just swapped credit risk for market risk.']],
+    diagram:{H:300,nodes:[
+      {id:'T',t:'Tenant',s:'NeoCloud operator',x:140,y:60},
+      {id:'L',t:'Landlord',s:'floating-rent lease',x:700,y:60,role:'p'},
+      {id:'DC',t:'Data contributors',s:'NeoClouds, brokers',x:140,y:235,role:'i'},
+      {id:'IA',t:'Index administrator',s:'IOSCO benchmark',x:430,y:160,role:'i'},
+      {id:'EX',t:'Futures exchange',s:'hedge venue',x:700,y:240,role:'i'}],
+     edges:[['T','L','rent = base × compute index'],['DC','IA','spot compute prices'],['IA','L','monthly fixings'],['L','EX','hedges index exposure']]}},
+  x_put:{name:'Dark-shell put',tick:'DSP',months:6,leader:'Hyperscaler corp dev',
+    hard:'The counterparty exists and wants the capacity — what is missing is a standard vacancy trigger and a fee that survives both legal departments.',
+    cfg:{x_put:{on:true}},
+    comps:[
+      ['e','Backfill appetite for powered shell','Hyperscalers and operators absorb distressed capacity today, ad hoc.'],
+      ['e','Interconnect & commissioning standards','Facility hand-over is engineering-routine.'],
+      ['b','Standard put documentation','An option on occupancy: term, strike rent, condition precedent, assignment.'],
+      ['b','Vacancy trigger definition','What counts as "dark"? Abandonment, rent default, insolvency filing — needs a bright line.']],
+    diagram:{H:300,nodes:[
+      {id:'L',t:'Landlord',s:'put holder',x:160,y:85,role:'p'},
+      {id:'H',t:'Backfill counterparty',s:'hyperscaler / operator',x:660,y:85,role:'r'},
+      {id:'T',t:'Tenant',s:'NeoCloud operator',x:160,y:225},
+      {id:'F',t:'Powered shell',s:'the facility',x:660,y:225,role:'i'}],
+     edges:[['L','H','put fee ~1.5%/yr'],['H','L','step-in at 85% of rent'],['T','F','occupies until default'],['H','F','takes over on trigger']]}},
+  x_nds:{name:'Binary default swap',tick:'NDS-B',months:18,leader:'Dealer credit desk',
+    hard:'Without standard event definitions it is an argument, not an instrument — and regulators will ask why a lease landlord is buying a digital swap.',
+    cfg:{x_nds:{on:true,n:15}},
+    comps:[
+      ['m','Protection sellers with AI-bull conviction','Funds long the AI theme will sell winter protection for carry; a market forms around the first prints.'],
+      ['e','Collateral mechanics','CSA / initial-margin plumbing ports straight from the CDS world.'],
+      ['b','NeoCloud default-event definitions','ISDA-style: what is a credit event for a private, venture-backed tenant?'],
+      ['b','Calculation agent & determination panel','Someone neutral has to call the event.'],
+      ['b','Insurable interest & swap-classification opinion','Is it a swap, insurance, or a wager? The answer decides the regulator.']],
+    diagram:{H:300,nodes:[
+      {id:'L',t:'Landlord',s:'protection buyer',x:120,y:150,role:'p'},
+      {id:'D',t:'Dealer desk',s:'intermediation',x:420,y:70},
+      {id:'PS',t:'AI-bull fund',s:'protection seller',x:720,y:70,role:'r'},
+      {id:'CA',t:'Calculation agent',s:'determination cttee',x:420,y:240,role:'i'},
+      {id:'CU',t:'Collateral custodian',s:'margin account',x:720,y:240,role:'i'}],
+     edges:[['L','D','spread, bps/yr'],['D','PS','back-to-back swap'],['PS','L','digital notional on event'],['CA','D','event determination'],['PS','CU','posts margin']]}},
+  x_cat:{name:'AI-winter cat bond',tick:'AIW-CAT',months:24,leader:'ILS structurer',
+    hard:'The $100B+ cat-bond market wants uncorrelated risk — AI winter qualifies. The blocker is a modeled, verifiable trigger a rating desk can price.',
+    cfg:{x_cat:{on:true,n:15}},
+    comps:[
+      ['e','ILS investor base','Cat-bond investors actively hunt diversifying perils.'],
+      ['e','SPV shelf + collateral trust','Standard Bermuda/Cayman template, T-bill collateral.'],
+      ['b','AI-winter regime index','The second trigger needs an observable index — compute prices, GPU utilization, AI funding volume.'],
+      ['b','Trigger verification agent','Independent party attesting default × correction.'],
+      ['b','Risk-modeling agency','Someone has to be the RMS/AIR of AI-infrastructure risk. This model is a seed.']],
+    diagram:{H:340,nodes:[
+      {id:'SP',t:'Landlord',s:'sponsor',x:120,y:150,role:'p'},
+      {id:'SPV',t:'SPV issuer',s:'Bermuda / Cayman',x:420,y:150,role:'i'},
+      {id:'IV',t:'ILS investors',s:'cat-bond funds',x:720,y:70,role:'r'},
+      {id:'TR',t:'Collateral trust',s:'T-bill escrow',x:720,y:250,role:'i'},
+      {id:'VA',t:'Verification agent',s:'trigger attestation',x:120,y:290,role:'i'}],
+     edges:[['SP','SPV','premium'],['SPV','IV','notes + coupon'],['IV','SPV','principal at issue'],['SPV','TR','proceeds escrowed'],['TR','SP','payout on dual trigger'],['VA','SPV','verifies default × correction']]}},
+  x_mut:{name:'Mutual guarantee pool',tick:'GRID',months:33,leader:'Industry consortium',
+    hard:'Competitors funding each other’s failures is a governance problem before it is a finance problem — and correlated drawdowns are exactly when mutuals crack.',
+    cfg:{x_mut:{on:true,m:4}},
+    comps:[
+      ['b','Consortium of competing NeoClouds','The airline-mutual / P&I-club model, applied to compute.'],
+      ['b','Charter, capital rules, member underwriting','Who gets in, what they post, when they pay.'],
+      ['m','Reinsurance backstop','Excess-of-loss cover to survive the correlated year; reinsurers will quote once rules exist.'],
+      ['m','Regulatory home','Captive or mutual-insurer license; established regimes fit.'],
+      ['b','Pool manager','Independent underwriting and claims — not a member.']],
+    diagram:{H:300,nodes:[
+      {id:'M',t:'NeoCloud members',s:'× N operators',x:140,y:70},
+      {id:'P',t:'GRID mutual pool',s:'guarantee fund',x:430,y:155,role:'i'},
+      {id:'LL',t:'Landlords',s:'beneficiaries',x:720,y:70,role:'p'},
+      {id:'RB',t:'Reinsurance backstop',s:'excess-of-loss',x:140,y:245,role:'r'},
+      {id:'PM',t:'Pool manager',s:'underwriting & claims',x:720,y:245,role:'i'}],
+     edges:[['M','P','contributions'],['P','LL','lease guarantees'],['RB','P','excess cover'],['PM','P','runs the pool']]}},
+  x_rvs:{name:'GPU residual-value guarantee',tick:'RVG',months:12,leader:'OEM finance arm',
+    hard:'Aviation and autos have done residual-value guarantees for decades — the OEM just has to decide supporting secondary prices is worth the balance-sheet charge.',
+    cfg:'rvs',
+    comps:[
+      ['e','OEM refurb & remarketing channel','Recertified-hardware programs already run.'],
+      ['e','Lien priority intercreditor forms','Standard equipment-finance documentation.'],
+      ['m','Secondary GPU price discovery','Auction and broker data exist; a published curve is close.'],
+      ['m','RVG product for AI hardware','Direct port of aviation/auto residual guarantees; first mover sets the fee.']],
+    diagram:{H:300,nodes:[
+      {id:'O',t:'GPU OEM',s:'finance arm',x:160,y:85,role:'r'},
+      {id:'L',t:'Landlord',s:'lien holder',x:660,y:85,role:'p'},
+      {id:'FL',t:'Tenant GPU fleet',s:'lien collateral',x:160,y:225},
+      {id:'RM',t:'Remarketing channel',s:'refurb & resale',x:660,y:225,role:'i'}],
+     edges:[['O','L','residual-value floor'],['L','FL','lien'],['FL','RM','fire-sale resale'],['RM','L','proceeds'],['O','RM','refurb & recert']]}},
+  x_war:{name:'Warrant coverage',tick:'WAR',months:3,leader:'Landlord + counsel',
+    hard:'Nothing to build — the catch is REIT income tests: warrant gains are non-qualifying income, so most institutional landlords need a taxable subsidiary to hold them.',
+    cfg:{x_war:{on:true,w:30}},
+    comps:[
+      ['e','Warrant documentation','NVCA-standard paper, signed at lease execution.'],
+      ['e','Valuation practice','409A machinery already prices it.'],
+      ['e','Secondaries market for monetization','Venture secondaries provide the exit.'],
+      ['b','REIT income-test structuring','Taxable REIT subsidiary to hold the warrants without breaking qualification.']],
+    diagram:{H:300,nodes:[
+      {id:'T',t:'Tenant',s:'issues warrants',x:160,y:85},
+      {id:'L',t:'Landlord',s:'via taxable subsidiary',x:600,y:85,role:'p'},
+      {id:'RC',t:'REIT tax counsel',s:'income-test structuring',x:160,y:225,role:'i'},
+      {id:'SM',t:'VC secondaries market',s:'monetization',x:600,y:225,role:'i'}],
+     edges:[['T','L','penny warrants at signing'],['RC','L','TRS structure'],['L','SM','sells position']]}},
+  ins:{name:'Lease-default insurance',tick:'INS',months:9,leader:'Specialty insurer / MGA',
+    hard:'Insurers need loss history that does not exist yet — the first policies get written against models like this one, at a load that reflects it.',
+    cfg:{ins:{on:true,c:20}},
+    comps:[
+      ['e','Policy form','Lease bonds and tenant-default covers exist; wording ports over.'],
+      ['m','Specialty underwriting capacity','An MGA focused on AI infrastructure; capacity is forming.'],
+      ['m','Reinsurance appetite','Treaty support follows the first primary wordings.'],
+      ['b','Tenant-credit loss dataset','No NeoCloud default history; model-based pricing bridges the gap.']],
+    diagram:{H:300,nodes:[
+      {id:'T',t:'Tenant',s:'NeoCloud operator',x:110,y:215},
+      {id:'L',t:'Landlord',s:'insured',x:110,y:85,role:'p'},
+      {id:'MGA',t:'Specialty MGA',s:'underwriter',x:430,y:85,role:'r'},
+      {id:'RE',t:'Reinsurance panel',s:'treaty capacity',x:730,y:85,role:'r'},
+      {id:'MV',t:'Loss-model vendor',s:'pricing engine',x:430,y:235,role:'i'}],
+     edges:[['T','L','lease'],['L','MGA','premium'],['MGA','L','claim on default'],['MGA','RE','cession'],['MV','MGA','modeled expected loss']]}}
+};
+const BUILD_ORDER=['x_cir','x_put','x_nds','x_cat','x_mut','x_rvs','x_war','ins'];
+let biSel='x_cir';
+
+function offConfig(st){
+  return JSON.parse(JSON.stringify(Object.assign({},st,
+    {dep:{on:false,m:0},lc:{on:false,m:0},gpu:{on:false,v:st.gpu.v,p:st.gpu.p},
+     rev:{on:false,s:50},gty:{on:false,m:6},ins:{on:false,c:15}},cloneJ(DEFX))));
+}
+function statChip(s){return s==='e'?'<span class="cstat cstat-e">exists</span>':s==='m'?'<span class="cstat cstat-m">emerging</span>':'<span class="cstat cstat-b">to build</span>';}
+function readiness(b){const sc={e:1,m:0.5,b:0};return b.comps.reduce((p,c)=>p+sc[c[0]],0)/b.comps.length;}
+
+function diagramSVG(d){
+  const W=860,H=d.H||300,NW=176,NH=48;
+  const pos=Object.fromEntries(d.nodes.map(n=>[n.id,n]));
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Deal structure diagram">`;
+  d.edges.forEach(([a,b,lab])=>{
+    const A=pos[a],B=pos[b];
+    const dx=B.x-A.x,dy=B.y-A.y,len=Math.hypot(dx,dy)||1;
+    const ux=dx/len,uy=dy/len;
+    s+=`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="var(--axis)" stroke-width="1.5"/>`;
+    const mx=A.x+dx*0.56,my=A.y+dy*0.56,sz=5;
+    s+=`<polygon points="${mx+ux*sz},${my+uy*sz} ${mx-ux*sz-uy*sz*0.9},${my-uy*sz+ux*sz*0.9} ${mx-ux*sz+uy*sz*0.9},${my-uy*sz-ux*sz*0.9}" fill="var(--axis)"/>`;
+    const lx=A.x+dx*0.5,ly=A.y+dy*0.5-8;
+    s+=`<text x="${lx}" y="${ly}" text-anchor="middle" font-size="10.5" fill="var(--ink2)" stroke="var(--surface)" stroke-width="3.5" paint-order="stroke">${esc(lab)}</text>`;
+  });
+  d.nodes.forEach(n=>{
+    const bc=n.role==='p'?'var(--accent)':n.role==='r'?'var(--x2)':n.role==='i'?'var(--axis)':'var(--axis)';
+    const bw=n.role==='p'||n.role==='r'?2:1.2;
+    const dash=n.role==='i'?'':'';
+    s+=`<rect x="${n.x-NW/2}" y="${n.y-NH/2}" width="${NW}" height="${NH}" rx="9" fill="var(--surface)" stroke="${bc}" stroke-width="${bw}" ${dash}/>`;
+    s+=`<text x="${n.x}" y="${n.y-3}" text-anchor="middle" font-size="12.5" font-weight="650" fill="var(--ink)">${esc(n.t)}</text>`;
+    s+=`<text x="${n.x}" y="${n.y+13}" text-anchor="middle" font-size="10.5" fill="var(--muted)">${esc(n.s)}</text>`;
+  });
+  return s+'</svg>';
+}
+
+function renderBuildPanel(){
+  const b=BUILD[biSel];
+  $('#bi_dtitle').textContent='Deal structure — '+b.name;
+  $('#bi_diagram').innerHTML=diagramSVG(b.diagram);
+  const rd=readiness(b);
+  $('#bi_stats').innerHTML=
+    `<div class="bs"><div class="bl">market readiness</div><div class="bv">${Math.round(rd*100)}%</div><div class="readybar"><div class="rf" style="width:${Math.round(rd*100)}%"></div></div></div>`+
+    `<div class="bs"><div class="bl">time to market</div><div class="bv">~${b.months} months</div></div>`+
+    `<div class="bs"><div class="bl">who leads</div><div class="bv">${esc(b.leader)}</div></div>`;
+  $('#bi_comps').innerHTML=b.comps.map(c=>
+    `<div class="comp">${statChip(c[0])}<div><div class="cn">${esc(c[1])}</div><div class="cnote">${esc(c[2])}</div></div></div>`).join('');
+  $('#bi_hard').textContent='Why it’s hard: '+b.hard;
+  document.querySelectorAll('#bi_chips .chip').forEach(ch=>ch.setAttribute('aria-pressed',String(ch.dataset.bi===biSel)));
+}
+
+function renderBuildScatter(st){
+  const base=offConfig(st);
+  const cvar0=evalHedges(base).sh.cvar;
+  const pts=BUILD_ORDER.map(k=>{
+    const b=BUILD[k];
+    let power;
+    if(b.cfg==='rvs'){
+      const g0=JSON.parse(JSON.stringify(base));g0.gpu={on:true,v:st.gpu.v,p:st.gpu.p};
+      const g1=JSON.parse(JSON.stringify(g0));g1.x_rvs={on:true};
+      power=Math.max(0,evalHedges(g0).sh.cvar-evalHedges(g1).sh.cvar);
+    }else if(k==='x_cir'){
+      const c=JSON.parse(JSON.stringify(Object.assign({},base,cloneJ(b.cfg))));
+      power=Math.max(0,cvar0-evalHedges(c,makeScenarios(c)).sh.cvar);
+    }else{
+      const c=JSON.parse(JSON.stringify(Object.assign({},base,cloneJ(b.cfg))));
+      power=Math.max(0,cvar0-evalHedges(c).sh.cvar);
+    }
+    return {k,tick:b.tick,name:b.name,months:b.months,power,ready:readiness(b)};
+  });
+  const maxX=Math.max(...pts.map(p=>p.months))*1.18, maxY=Math.max(...pts.map(p=>p.power),1)*1.2;
+  const W=880,H=300,pl=52,prt=24,pt=16,pb=44,pw=W-pl-prt,ph=H-pt-pb;
+  const X=v=>pl+v/maxX*pw, Y=v=>pt+ph-(v/maxY)*ph;
+  let s='';
+  ticks(maxY,3).forEach(v=>{s+=`<line x1="${pl}" x2="${pl+pw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end" font-size="10.5" fill="var(--muted)">$${Math.round(v)}M</text>`;});
+  s+=`<line x1="${pl}" x2="${pl+pw}" y1="${pt+ph}" y2="${pt+ph}" stroke="var(--axis)"/>`;
+  ticks(maxX,4).forEach(v=>{s+=`<text x="${X(v)}" y="${H-26}" text-anchor="middle" font-size="10.5" fill="var(--muted)">${Math.round(v)}</text>`;});
+  s+=`<text x="${pl+pw/2}" y="${H-8}" text-anchor="middle" font-size="10.5" fill="var(--muted)" font-family="var(--sans)">months to stand the market up</text>`;
+  pts.forEach((p,i)=>{
+    s+=`<circle cx="${X(p.months)}" cy="${Y(p.power)}" r="5.5" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/>`;
+    s+=`<text x="${X(p.months)+(X(p.months)>pl+pw*0.75?-9:9)}" y="${Y(p.power)+(i%2?12:-8)}" text-anchor="${X(p.months)>pl+pw*0.75?'end':'start'}" font-size="10" font-weight="600" fill="var(--ink2)" font-family="var(--sans)">${esc(p.tick)}</text>`;
+    s+=`<circle class="bfhit" data-i="${i}" cx="${X(p.months)}" cy="${Y(p.power)}" r="14" fill="transparent"/>`;
+  });
+  $('#chartF').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Build difficulty versus tail-risk transfer power">${s}</svg>`;
+  const svg=$('#chartF svg');
+  svg.querySelectorAll('.bfhit').forEach(c=>{
+    c.addEventListener('pointermove',e=>{
+      const p=pts[+c.dataset.i];const cs=getComputedStyle(document.documentElement);
+      showTip(`<div class="tt">${esc(p.name)}</div>`
+        +tipRow(cs.getPropertyValue('--s1').trim(),'CVaR₉₅ cut (alone)',fM(p.power),true)
+        +tipRow(cs.getPropertyValue('--muted').trim(),'Time to market',p.months+' mo',true)
+        +tipRow(cs.getPropertyValue('--muted').trim(),'Readiness',Math.round(p.ready*100)+'%',true),e.clientX,e.clientY);
+    });
+    c.addEventListener('pointerleave',hideTip);
+  });
+  table($('#tableF'),['Instrument','CVaR₉₅ cut (alone)','Months to market','Readiness'],
+    pts.map(p=>[p.name,fM(p.power),p.months,Math.round(p.ready*100)+'%']));
+}
+
+const ROAD=[
+  {ws:'GPU compute benchmark',bars:[[1,3,'Index design & admin','m'],[4,6,'IOSCO compliance','b'],[7,10,'Futures listing','b']]},
+  {ws:'Documentation standards',bars:[[1,3,'Default-event definitions','b'],[4,6,'Lease riders: CIR, puts','b']]},
+  {ws:'Risk vehicles',bars:[[1,4,'Insurance MGA & policies','m'],[5,7,'Cat-bond SPV shelf','b'],[8,9,'Swap docs live','b']]},
+  {ws:'Consortium & mutual',bars:[[2,6,'GRID charter & capital rules','b'],[7,9,'First-loss fund + reins.','m']]},
+  {ws:'Regulatory & legal',bars:[[1,3,'Insurable-interest opinions','m'],[4,6,'Benchmark regulation','b'],[7,9,'Swap classification','b']]}
+];
+const RSTAT={e:['exists','--good'],m:['emerging','--warn'],b:['to build','--serious']};
+function renderRoadmap(){
+  const W=880,rowH=44,padT=26,padB=10,labW=170;
+  const rows=ROAD.length,H=padT+rows*rowH+padB;
+  const qw=(W-labW-16)/10;
+  let s='';
+  for(let q=1;q<=10;q++){
+    const x=labW+(q-1)*qw;
+    s+=`<line x1="${x}" x2="${x}" y1="${padT-6}" y2="${H-padB}" stroke="var(--grid)"/>`;
+    s+=`<text x="${x+qw/2}" y="${padT-10}" text-anchor="middle" font-size="10" fill="var(--muted)">Q${q}</text>`;
+  }
+  ROAD.forEach((r,i)=>{
+    const y=padT+i*rowH+rowH/2;
+    s+=`<text x="0" y="${y+4}" font-size="11.5" font-weight="600" fill="var(--ink2)" font-family="var(--sans)">${esc(r.ws)}</text>`;
+    r.bars.forEach(([q0,q1,lab,st_],bi)=>{
+      const x=labW+(q0-1)*qw+2, w=(q1-q0+1)*qw-4;
+      const col=`var(${RSTAT[st_][1]})`;
+      s+=`<rect class="rb" data-i="${i}" data-b="${bi}" x="${x}" y="${y-10}" width="${w}" height="20" rx="5" fill="${col}" opacity="0.22"/>`;
+      s+=`<rect x="${x}" y="${y-10}" width="3" height="20" rx="1.5" fill="${col}"/>`;
+      s+=`<text x="${x+9}" y="${y+4}" font-size="10" fill="var(--ink)" font-family="var(--sans)" stroke="var(--surface)" stroke-width="3" paint-order="stroke">${esc(lab)}</text>`;
+    });
+  });
+  $('#chartG').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Market build-out roadmap by quarter">${s}</svg>`;
+  legend($('#legG'),[{n:'exists — scale it',c:'var(--good)'},{n:'emerging — accelerate it',c:'var(--warn)'},{n:'to build — start it',c:'var(--serious)'}]);
+  table($('#tableG'),['Workstream','Phase','Quarters','Status'],
+    ROAD.flatMap(r=>r.bars.map(b=>[r.ws,b[2],`Q${b[0]}–Q${b[1]}`,RSTAT[b[3]][0]])));
+}
+
+let biInit=false;
+function renderBuild(st,M){
+  if(!biInit){
+    biInit=true;
+    const wrap=$('#bi_chips');
+    BUILD_ORDER.forEach(k=>{
+      const b=BUILD[k];
+      const btn=document.createElement('button');
+      btn.className='chip';btn.dataset.bi=k;btn.textContent=b.tick+' · '+b.name;
+      btn.setAttribute('aria-pressed',String(k===biSel));
+      btn.addEventListener('click',()=>{biSel=k;renderBuildPanel();});
+      wrap.appendChild(btn);
+    });
+    renderRoadmap();
+  }
+  $('#buildstat').textContent=`Live from the desk: P(default over term) ${fP(M.pdef)} · unhedged CVaR₉₅ ${fM(M.su.cvar)} · residual after current stack ${fM(M.sh.cvar)} (tolerance ${fM(st.tol*st.rent/12)}).`;
+  renderBuildPanel();
+  renderBuildScatter(st);
+}
+
 /* ================= wiring ================= */
 const BIND=[
   {id:'stage',get:()=>state.stage,set:v=>state.stage=v,rebuild:true},
@@ -1170,6 +1543,7 @@ function update(rebuild){
   renderVerdict(state,M);renderTiles(state,M);renderCosts(state,M);
   renderA(state);renderB(state);renderC(state,M);renderD(state);renderE(state,M);
   termSheet(state,M);
+  renderBuild(state,M);
 }
 function scheduleUpdate(rebuild){
   if(pending)cancelAnimationFrame(pending);
@@ -1204,6 +1578,14 @@ BIND.forEach(b=>{
 });
 $('#autobtn').addEventListener('click',()=>autoStructure(false));
 $('#exobtn').addEventListener('click',()=>autoStructure(true));
+[['desk','#view_desk'],['build','#view_build']].forEach(([k])=>{
+  document.getElementById('vbtn_'+k).addEventListener('click',()=>{
+    ['desk','build'].forEach(kk=>{
+      document.getElementById('vbtn_'+kk).setAttribute('aria-pressed',String(kk===k));
+      $(kk==='desk'?'#view_desk':'#view_build').classList.toggle('hidden',kk!==k);
+    });
+  });
+});
 [['std','#tab_std'],['exo','#tab_exo']].forEach(([k,sel])=>{
   document.getElementById('tabbtn_'+k).addEventListener('click',()=>{
     ['std','exo'].forEach(kk=>{

@@ -45,6 +45,20 @@ but the risk *can* be measured, layered, and hedged until a rational landlord si
      reducing it (income line, zero tail effect — shown honestly)
 
    A second solver button is allowed to use the whole desk.
+7. **Switch to Market engineering** — a second page-level view answering *"how do we
+   make these conditions possible?"*:
+   - **Why this market has to be built** — the §502(b)(6) bankruptcy cap (most of a
+     7-year lease claim is unrecoverable from the estate, so support must sit outside
+     it), the wrong-way nature of the risk, and the missing plumbing
+   - **Instrument anatomy** — for each of eight instruments, a Wall Street-style deal
+     structure diagram (SPVs, dealers, trusts, calc agents, index administrators, with
+     labeled money/risk flows) plus a component checklist tagged exists / emerging /
+     to build, a readiness score, time-to-market, and who leads
+   - **What to build first** — build difficulty vs. tail-risk transfer power, where
+     power is computed live from the simulation (marginal CVaR₉₅ cut of each
+     instrument alone for the tenant currently on the desk)
+   - **Market build-out roadmap** — ten quarters across five workstreams: benchmark
+     index, documentation standards, risk vehicles, consortium, regulatory
 
 The headline output is a **SIGNABLE / MARGINAL / NOT SIGNABLE** verdict: residual
 CVaR₉₅ against the landlord's tolerance, with the annual cost of getting there.
